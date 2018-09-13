@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>Práctico Haskell 5: DataKinds, Type Families</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Amax%2Dwidth%3A%2040em%3B%0Amargin%3A%20auto%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Atable%20%7B%0Aborder%3A%201px%20solid%3B%0Aborder%2Dspacing%3A%205px%200%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">Práctico Haskell 5: DataKinds, Type Families</h1>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="practico05.html#motivación-del-ejercicio">Motivación del ejercicio</a></li>
+<li><a href="practico05.html#naturales-al-nivel-de-los-tipos">Naturales al nivel de los tipos</a></li>
+<li><a href="practico05.html#ejercicio-1">Ejercicio 1</a></li>
+<li><a href="practico05.html#gadts">GADTs</a></li>
+<li><a href="practico05.html#ejercicio-2">Ejercicio 2</a></li>
+</ul>
+</div>
+<h2 id="motivación-del-ejercicio">Motivación del ejercicio</h2>
+<p>Todos los programas bien tipados no se ejecutan siempre bien:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">bottom ::</span> <span class="dt">Int</span>
+bottom <span class="fu">=</span> head [] <span class="co">-- accediendo a la cabeza de una lista vacía!</span>
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> print bottom</code></pre></div>
+<p>¿Podríamos hacer verificar condiciones de limites de listas de forma estática por el sistema de tipos?</p>
+<p>La solución común parametrizar el tamaño de las listas en su tipo. Por ejemplo:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">[]<span class="ot"> ::</span> <span class="dt">Vector</span> <span class="dt">Int</span> <span class="dv">0</span>
+[<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>]<span class="ot"> ::</span> <span class="dt">Vector</span> <span class="dt">Int</span> <span class="dv">3</span></code></pre></div>
+<p>Y así. Se suelen llamar &quot;vectores&quot; las listas parametrizadas por su tamaño, por eso el nombre del tipo. Si reescribimos el tipo de <code>head</code> en <code>head :: Vector a (n+1) -&gt; a</code>, <code>head []</code> sería rechazado en el momento de la compilación porque <code>[]</code> tiene el tipo <code>Vector a 0</code> pero el tipo de <code>head</code> requiere un tamaño mayor a 0.</p>
+<p>El tipo de <code>Vector</code> parece <em>depender</em> del valor 0, n+1, etc., y tipos cono este se llaman <em>tipos dependientes</em>. Lenguajes como Agda e Idris proveen tipos completamente dependientes por defecto. En cambio, Haskell no los provee porque hay inconvenientes para adoptarlos, como la indecibilidad de la inferencia de tipos, y la pérdida de la separación entre valores y tipos que impediría tener programas performantes.</p>
+<p>¿Deberíamos renunciar a los tipos dependientes en Haskell? No. Con las extensiones del sistema de tipo de GHC podemos, en cierta medida, <em>simular</em> tipos dependientes.</p>
+<p>¿Como implementarlos? Con respecto a los vectores, debemos considerar los problemas siguientes:</p>
+<ol style="list-style-type: decimal">
+<li>¿Cómo expresar los enteros naturales al nivel de los tipos?</li>
+<li>¿Cómo controlamos el parámetro de tamaño en los tipos?</li>
+</ol>
+<h2 id="naturales-al-nivel-de-los-tipos">Naturales al nivel de los tipos</h2>
+<p>Veamos como resolver el primer problema. Acá adoptamos los <a href="https://cs.famaf.unc.edu.ar/~hoffmann/rio18/www.haskell.org/haskellwiki/Peano_numbers">números de Peano</a> para representar enteros naturales:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">Nat</span></code></pre></div>
+<p>Es decir, <code>Z</code> correponde a 0 y <code>S n</code> corresponde a n+1. Por ejemplo <code>S ( S (S Z))</code> significa 3, <code>S ( S ( S ( S ( S Z))))</code> significa 5, etc.</p>
+<p>Con esto hemos definido enteros naturales al nivel de los <em>valores</em>. Pero necesitamos de hecho enteros naturales al nivel de los <em>tipos</em>. Entonces tenemos que <em>promover</em> este <em>valor</em> al nivel de los <em>tipos</em>.</p>
+<p>Afortunadamente, la extensión de GHC <code>DataKinds</code> promueve automáticamente el valor al nivel de los tipos. Consideremos el código siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE DataKinds #-}</span>
+<span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">Nat</span></code></pre></div>
+<p>Con esto, GHC define automáticamente los <em>constructores de tipos</em> <code>Z</code> y <code>S</code> con sus <em>kinds</em> respectivos <code>Nat</code> y <code>Nat -&gt; Nat</code>. La relación entre kinds y tipos es la misma que entre tipos y valores, &quot;kind&quot; significa &quot;tipo del tipo&quot;. Los tipos a los cuales estamos acostumbrados, que tienen algun valor, tienen el kind <code>*</code>, por ejemplo, <code>Int :: *</code>, <code>() :: *</code> y <code>Bool :: *</code>. Los tipos paramétricos (o contenedores) pueden ser expresados con flechas, como los tipos de funciones. Por ejemplo: <code>[] :: * -&gt; *</code>, <code>Either :: * -&gt; * -&gt; *</code> y <code>StateT :: * -&gt; (* -&gt; *) -&gt; * -&gt; *</code>, etc.</p>
+<p>Por defecto, Haskell solo tiene kinds construidos recursivamente a partir de <code>*</code> y <code>-&gt;</code>.</p>
+<p>(Para decir toda la verdad, GHC tiene otro kind básico <code>#</code> que reprensenta tipos &quot;unboxed&quot;, pero no lo mencionamos por simplicidad. Además existe el kind <code>Constraint</code> que sirve para etiquetar lo que se puede colocar en el contexto de algun tipo. Por ejemplo, el kind de la clase de tipo <code>Num</code> es <code>* -&gt; Constraint</code>. El kind del operador de igualdad de tipos <code>~</code> es <code>k -&gt; k -&gt; Constraint</code>.)</p>
+<p>Luego, la extensión <code>DataKinds</code> agrega nuevos kinds básicos.</p>
+<p>Cabe observar que solo los tipos cuyo kind es <code>*</code> pueden tener habitantes (o, valores), entonces el tipo introducido por <code>DataKinds</code> (es decir <code>Z</code> o <code>S n</code> como tipo) no puede ser habitado. En particular, en el protótipo de una función, tales tipos solo pueden ser argumentos de otros tipos, pero no pueden ocurrir por su cuenta, solos (¿qué valores tiene el tipo <code>S n</code>?).</p>
+<p>Entonces, conseguimos números naturales al nivel de los tipos. Luego, queremos definir alguna función aritmética. Entonces debemos definir una <em>función al nivel de los tipos</em>. La extensión <code>TypeFamilies</code> nos da exactamente lo que queremos. Por ejemplo, la suma se puede implementar como sigue:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE DataKinds, TypeFamilies #-}</span>
+<span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">Nat</span>
+<span class="kw">type</span> family   <span class="dt">Plus</span> (<span class="ot">n ::</span> <span class="dt">Nat</span>) (<span class="ot">m ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Nat</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Plus</span> <span class="dt">Z</span>     m <span class="fu">=</span> m
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Plus</span> (<span class="dt">S</span> n) m <span class="fu">=</span> <span class="dt">S</span> (<span class="dt">Plus</span> n m)</code></pre></div>
+<p>Con la extensión <code>TypeOperators</code>, hasta podemos escribirla como un operador infijo:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}</span>
+<span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">Nat</span>
+
+<span class="kw">infixl</span> <span class="dv">6</span> <span class="fu">:+</span>
+
+<span class="kw">type</span> family   (<span class="ot">n ::</span> <span class="dt">Nat</span>) <span class="fu">:+</span> (<span class="ot">m ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Nat</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Z</span>     <span class="fu">:+</span> m <span class="fu">=</span> m
+<span class="kw">type</span> <span class="kw">instance</span> (<span class="dt">S</span> n) <span class="fu">:+</span> m <span class="fu">=</span> <span class="dt">S</span> (n <span class="fu">:+</span> m)</code></pre></div>
+<h2 id="ejercicio-1">Ejercicio 1</h2>
+<p>Implementá el producto <code>:*</code> para enteros naturales al nivel de los tipos. Vas a necesitar la extensión <code>UndecidableInstances</code> para que sea aceptado por GHC.</p>
+<p>Hay distintas implementaciones posibles en función de sobre cuál argumento hacer la recursión y el orden de la recursión y de la suma.</p>
+<h2 id="gadts">GADTs</h2>
+<p>Hemos definido naturales al nivel de los tipos y su aritmética. ¡Implementemos vectores! La extensión <em>GADTs</em> (Generalized Algebraic Data Types) nos permite definir tal tipo de datos:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE GADTs #-}</span>
+<span class="ot">{-# LANGUAGE DataKinds, TypeFamilies, TypeOperators #-}</span>
+<span class="ot">{-# LANGUAGE UndecidableInstances #-}</span>
+<span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Z</span> <span class="fu">|</span> <span class="dt">S</span> <span class="dt">Nat</span>
+
+<span class="kw">infixl</span> <span class="dv">6</span> <span class="fu">:+</span>
+<span class="co">-- infixl 7 :*</span>
+
+<span class="kw">type</span> family   (<span class="ot">n ::</span> <span class="dt">Nat</span>) <span class="fu">:+</span> (<span class="ot">m ::</span> <span class="dt">Nat</span>)<span class="ot"> ::</span> <span class="dt">Nat</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Z</span>     <span class="fu">:+</span> m <span class="fu">=</span> m
+<span class="kw">type</span> <span class="kw">instance</span> (<span class="dt">S</span> n) <span class="fu">:+</span> m <span class="fu">=</span> <span class="dt">S</span> (n <span class="fu">:+</span> m)
+
+<span class="co">-- implementación del producto :*</span>
+
+<span class="kw">data</span> <span class="dt">Vector</span> a n <span class="kw">where</span>
+  <span class="dt">Nil</span><span class="ot">  ::</span> <span class="dt">Vector</span> a <span class="dt">Z</span>
+<span class="ot">  (:-) ::</span> a <span class="ot">-&gt;</span> <span class="dt">Vector</span> a n <span class="ot">-&gt;</span> <span class="dt">Vector</span> a (<span class="dt">S</span> n)
+<span class="kw">infixr</span> <span class="dv">5</span> <span class="fu">:-</span></code></pre></div>
+<p>Los GADTs nos permiten <em>especificar</em> la forma del parámetro de tipo, especificando explícitamente el tipo del constructor.</p>
+<p>Hemos definido el tipo <code>Vector</code>, ahora derivemos instancias estándares. Usemos <code>StandaloneDeriving</code>, que hace más poderoso la derivación automática de instancias:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE StandaloneDeriving #-}</span>
+<span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Eq</span> a <span class="ot">=&gt;</span> <span class="dt">Eq</span> (<span class="dt">Vector</span> a n)
+<span class="kw">deriving</span> <span class="kw">instance</span> <span class="dt">Show</span> a <span class="ot">=&gt;</span> <span class="dt">Show</span> (<span class="dt">Vector</span> a n)</code></pre></div>
+<p>Ahora que henos definido el tipo <code>Vector</code>, implementemos operaciones sobre vectores. Para la primera, consideremos las funciones <code>head</code> y <code>tail</code>. Son bastante directas:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">head<span class="ot"> ::</span> <span class="dt">Vector</span> a (<span class="dt">S</span> n) <span class="ot">-&gt;</span> a
+head (x <span class="fu">:-</span> _) <span class="fu">=</span> x
+
+tail<span class="ot"> ::</span> <span class="dt">Vector</span> a (<span class="dt">S</span> n) <span class="ot">-&gt;</span> <span class="dt">Vector</span> a n
+tail (_ <span class="fu">:-</span> xs) <span class="fu">=</span> xs
+
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> <span class="kw">do</span>
+  print <span class="fu">$</span> head (<span class="dv">1</span> <span class="fu">:-</span> <span class="dv">2</span> <span class="fu">:-</span> <span class="dt">Nil</span>)
+  print <span class="fu">$</span> tail (<span class="dv">1</span> <span class="fu">:-</span> <span class="dv">2</span> <span class="fu">:-</span> <span class="dt">Nil</span>)
+  <span class="co">-- | decomentar la línea abajo genera un error de tipeo</span>
+  <span class="co">-- print $ head Nil</span></code></pre></div>
+<p>Esto nos permite implementar <code>append</code> fácilmente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">append ::</span> <span class="dt">Vector</span> a n <span class="ot">-&gt;</span> <span class="dt">Vector</span> a m <span class="ot">-&gt;</span> <span class="dt">Vector</span> a (n <span class="fu">:+</span> m)
+append (x <span class="fu">:-</span> xs) ys <span class="fu">=</span> x <span class="fu">:-</span> append xs ys
+append <span class="dt">Nil</span>       ys <span class="fu">=</span> ys</code></pre></div>
+<p>Porque nuestra definición de la suma de los naturales tiene la recursión en su argumento de la izquierda, y <code>append</code> del mismo lado, GHC puede chequear el tipo de la función con éxito. ¡Hurra!</p>
+<h2 id="ejercicio-2">Ejercicio 2</h2>
+<ol style="list-style-type: decimal">
+<li>Implementá <code>toList</code>.</li>
+<li>Implementá la versión <code>Vector</code> de <code>map</code>, <code>uncons</code>, <code>init</code> y <code>last</code>.</li>
+<li><p>Implementá la función siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">zipWithSame ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">Vector</span> a n <span class="ot">-&gt;</span> <span class="dt">Vector</span> b n <span class="ot">-&gt;</span> <span class="dt">Vector</span> c n</code></pre></div>
+<p>Es la versión de <code>zipWith</code> para vectores de mismo tamaño.</p></li>
+<li><p>Implementá la función <code>min</code> para enteros naturales al nivel de los tipos. Usala para implementar <code>zipWith</code> que toma dos vectores con tamaños posiblemente distintos.</p></li>
+</ol>
+</body>
+</html>

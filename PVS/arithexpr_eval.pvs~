@@ -1,0 +1,25 @@
+arithexpr_eval: THEORY
+BEGIN
+
+  IMPORTING ArithExpr
+
+  Value: DATATYPE BEGIN
+    bool_val(valb:bool):bool_val?
+    real_val(valr:real):real_val?
+  END Value 
+  
+  ValueFor(expr: ArithExpr): TYPE =
+    {v: Value | IF NumExpr(expr) THEN real_val?(v) ELSE bool_val?(v) ENDIF}
+  
+  eval(expr: ArithExpr): RECURSIVE ValueFor(expr) =
+    CASES expr OF
+      CONST(x):      real_val(x),
+      ADD(x1,x2):    real_val(valr(eval(x1))+valr(eval(x2))),
+      EQUALS(x1,x2): bool_val(valr(eval(x1))=valr(eval(x2))),
+      ITE(b,x1,x2):  IF valb(eval(b))
+                     THEN eval(x1)
+                     ELSE eval(x2) ENDIF
+    ENDCASES
+  MEASURE expr BY <<
+
+END arithexpr_eval

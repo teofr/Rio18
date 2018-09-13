@@ -1,0 +1,29 @@
+(ex2
+ (trivial1 0
+  (trivial1-1 nil 3728136564 ("" (assert) nil nil)
+   ((posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil)
+    (even_plus_even_is_even application-judgement "even_int" integers
+     nil))
+   shostak))
+ (trivial2 0
+  (trivial2-1 nil 3728130228 ("" (assert) nil nil)
+   ((even_plus_even_is_even application-judgement "even_int" integers
+     nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil))
+   shostak))
+ (trivial3 0
+  (trivial3-1 nil 3728130253
+   ("" (skeep) (("" (expand inc) (("" (assert) nil nil)) nil)) nil)
+   ((inc const-decl "nat" ex2 nil)
+    (real_gt_is_strict_total_order name-judgement
+     "(strict_total_order?[real])" real_props nil)
+    (posint_plus_nnint_is_posint application-judgement "posint"
+     integers nil))
+   shostak))
+ (trivial4 0
+  (trivial4-1 nil 3728130452
+   ("" (skeep) (("" (expand inc) (("" (propax) nil nil)) nil)) nil)
+   ((inc const-decl "nat" ex2 nil)) shostak)))
+

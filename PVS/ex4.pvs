@@ -1,0 +1,45 @@
+ex4: THEORY
+BEGIN
+
+  % Prove the following theorem
+  % To prove: with the cursor on the formula to prove, M-x pr (or C-c C-p).
+  % Once finished, send ex4.pvs and ex4.prf to mariano.moscato@nianet.org
+
+  %   The PVS prelude includes the following definitions:
+  %
+  %   expt(r, n): RECURSIVE real =
+  %     IF n = 0 THEN 1
+  %     ELSE r * expt(r, n-1)
+  %     ENDIF
+  %    MEASURE n;
+  %
+  %  An imperative version of expt in pseudo-code:
+  %  function expt_it(x:real,n:nat):nat {
+  %    a := 1;
+  %    // a = expt(x,0)
+  %    for (i:=1; i <= n; i++) {
+  %    // invariant: a = expt(x,i)
+  %      a := a*x;
+  %    }
+  %    return a;
+  %    // post: a = expt(x,n)
+  %  }
+
+  IMPORTING for_iterate
+
+  expt_it(x:real,n:nat): real =
+    for(1,n,1,LAMBDA(i:subrange(1,n),a:real):a*x)
+
+  % Invariant is LAMBDA(i:upto(n),a:real): a = expt(x,i)
+  expt_it_sound : LEMMA
+    FORALL(x:real,n:nat): expt_it(x,n) = expt(x,n)
+
+  % Hints: the following proof commands could be useful
+  % (skeep)
+  % (expand ...)
+  % (lemma "for_induction[real]")
+  % (inst? -1)
+  % (inst -1 "LAMBDA(i:upto(n),a:real): a = expt(x,i)")
+  % (grind)
+
+END ex4

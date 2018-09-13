@@ -1,0 +1,13 @@
+violin: THEORY
+BEGIN
+
+  Forro: DATATYPE
+  BEGIN
+    forro(adentro: nat, afuera: nat): forro?
+  END Forro
+
+  
+
+  
+
+END violin

@@ -1,0 +1,4 @@
+DataKinds eleva funciones?
+
+que pasa con 'undefined como un kind?
+

@@ -1,0 +1,6 @@
+ArithExpr: DATATYPE WITH SUBTYPES NumExpr, BoolExpr BEGIN
+    CONST (x: real)                     : constant? : NumExpr
+    ADD   (x1,x2: NumExpr)              : addition? : NumExpr
+    EQUALS(x1,x2: NumExpr)              : equals?   : BoolExpr
+    ITE   (b: BoolExpr, x1,x2: NumExpr) : ite?      : NumExpr
+END ArithExpr

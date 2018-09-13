@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Guillaume Hoffmann" />
+  <title>El sistema de tipos de Haskell | 5/5</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Amax%2Dwidth%3A%2040em%3B%0Amargin%3A%20auto%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Atable%20%7B%0Aborder%3A%201px%20solid%3B%0Aborder%2Dspacing%3A%205px%200%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">El sistema de tipos de Haskell | 5/5</h1>
+<h2 class="author">Guillaume Hoffmann</h2>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="parte5.html#día-5">Día 5</a><ul>
+<li><a href="parte5.html#plan">Plan</a></li>
+<li><a href="parte5.html#cuando-los-kinds-no-bastan">Cuando los Kinds no bastan</a></li>
+<li><a href="parte5.html#volviendo-a-los-gadts">Volviendo a los GADTs</a></li>
+<li><a href="parte5.html#section"></a></li>
+<li><a href="parte5.html#datakinds-y-los-nombres-ambiguos">DataKinds y los nombres ambiguos</a></li>
+<li><a href="parte5.html#polimorfismo-de-kinds-para-tipos-promovidos">Polimorfismo de kinds para tipos promovidos</a></li>
+<li><a href="parte5.html#section-1"></a></li>
+<li><a href="parte5.html#section-2"></a></li>
+<li><a href="parte5.html#restricciones-de-datakinds-1">Restricciones de <code>DataKinds</code> 1</a></li>
+<li><a href="parte5.html#restricciones-de-datakinds-2">Restricciones de <code>DataKinds</code> 2</a></li>
+<li><a href="parte5.html#averiguar-kinds-en-ghci">Averiguar kinds en GHCi</a></li>
+<li><a href="parte5.html#typeintype"><code>TypeInType</code></a></li>
+<li><a href="parte5.html#vista-general-de-typeintype">Vista general de <code>TypeInType</code></a></li>
+<li><a href="parte5.html#porqué-no-tipos-totalmente-dependientes">¿Porqué no tipos totalmente dependientes?</a></li>
+<li><a href="parte5.html#para-explorar">Para explorar</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="día-5">Día 5</h1>
+<h2 id="plan">Plan</h2>
+<ul>
+<li>Kinds otra vez</li>
+<li>DataKinds</li>
+<li>Un poco de TypeInType</li>
+</ul>
+<h2 id="cuando-los-kinds-no-bastan">Cuando los Kinds no bastan</h2>
+<blockquote>
+<p>Recent innovations in Haskell have been moving in exactly this direction. Notably, GADTs [24] and type families [25] turn the type system into a (modest) pro- gramming language in its own right.</p>
+<p>But, embarrassingly, type-level programming in Haskell is almost entirely untyped because the kind system has too few kinds (<code>*</code>, <code>* -&gt; *</code>, and so on).</p>
+<p><em>Giving Haskell a Promotion, 2012</em> <a href="http://dreixel.net/research/pdf/ghp.pdf" class="uri">http://dreixel.net/research/pdf/ghp.pdf</a></p>
+</blockquote>
+<h2 id="volviendo-a-los-gadts">Volviendo a los GADTs</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Zero</span>
+<span class="kw">data</span> <span class="dt">Succ</span> n
+
+<span class="kw">data</span> <span class="dt">Vec</span><span class="ot"> ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span> <span class="kw">where</span>
+  <span class="dt">Nil</span><span class="ot">    ::</span> <span class="dt">Vec</span> a <span class="dt">Zero</span>
+  <span class="dt">Cons</span><span class="ot">   ::</span> a <span class="ot">-&gt;</span> <span class="dt">Vec</span> a n <span class="ot">-&gt;</span> <span class="dt">Vec</span> a (<span class="dt">Succ</span> n)
+
+<span class="ot">safeHead ::</span> <span class="dt">Vec</span> a (<span class="dt">Succ</span> n) <span class="ot">-&gt;</span> a
+safeHead (<span class="dt">Cons</span> h _) <span class="fu">=</span> h</code></pre></div>
+<ul>
+<li>dentro del sistema de tipos, el tipo (kind) de <code>Succ</code> es <code>*</code>.</li>
+<li>no da indicación sobre para qué se supone que sirva</li>
+<li>podríamos escribir <code>Succ Bool</code> o <code>Vec Zero Int</code></li>
+</ul>
+<h2 id="section"></h2>
+<p>Mejor sería poder escribir:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Zero</span> <span class="fu">|</span> <span class="dt">Succ</span> <span class="dt">Nat</span>
+
+<span class="kw">data</span> <span class="dt">Vec</span><span class="ot"> ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="dt">Nat</span> <span class="ot">-&gt;</span> <span class="fu">*</span> <span class="kw">where</span>
+  <span class="dt">VNil</span><span class="ot">    ::</span> <span class="dt">Vec</span> a <span class="dt">Zero</span>
+  <span class="dt">VCons</span><span class="ot">   ::</span> a <span class="ot">-&gt;</span> <span class="dt">Vec</span> a n <span class="ot">-&gt;</span> <span class="dt">Vec</span> a (<span class="dt">Succ</span> n)</code></pre></div>
+<ul>
+<li>El segundo argumento de <code>Vec</code> sería un <em>valor</em> de tipo <code>Nat</code>.</li>
+<li><code>Vec Zero Int</code> daría un error de tipeo</li>
+</ul>
+<p>¡La extensión <code>DataKinds</code> habilita esto!</p>
+<h2 id="datakinds-y-los-nombres-ambiguos">DataKinds y los nombres ambiguos</h2>
+<p>A menudo se define un tipo con un constructor del mismo nombre: <code>data T = T Int</code>.</p>
+<p>En caso de ambiguedad de usa <code>'T</code> para el tipo promovido en kind por DataKinds:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Zero</span> <span class="fu">|</span> <span class="dt">Succ</span> <span class="dt">Nat</span>
+
+<span class="kw">data</span> <span class="dt">Vec</span><span class="ot"> ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="dt">Nat</span> <span class="ot">-&gt;</span> <span class="fu">*</span> <span class="kw">where</span>
+  <span class="dt">VNil</span><span class="ot">    ::</span> <span class="dt">Vec</span> a <span class="ch">'Zero</span>
+  <span class="dt">VCons</span><span class="ot">   ::</span> a <span class="ot">-&gt;</span> <span class="dt">Vec</span> a n <span class="ot">-&gt;</span> <span class="dt">Vec</span> a (<span class="ch">'Succ n)</span></code></pre></div>
+<p>Si no hay ambiguedad, el apóstrofe puede ser omitido.</p>
+<p>Al nivel de los kinds el apóstrofe no es necesario (ni permitio) porque no hay ambiguedad posible.</p>
+<h2 id="polimorfismo-de-kinds-para-tipos-promovidos">Polimorfismo de kinds para tipos promovidos</h2>
+<p>También se promueven tipos de datos parametrizados:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">HList</span><span class="ot"> ::</span> [<span class="fu">*</span>] <span class="ot">-&gt;</span> <span class="fu">*</span> <span class="kw">where</span>
+  <span class="dt">HNil</span><span class="ot">  ::</span> <span class="dt">HList</span> <span class="ch">'[]</span>
+  <span class="dt">HCons</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">HList</span> as <span class="ot">-&gt;</span> <span class="dt">HList</span> (a<span class="fu">:</span>as)</code></pre></div>
+<p>Esto declara el tipo <code>HList</code> de las listas <em>heterogeneas</em>.</p>
+<p><code>HList</code> representa una lista de tipos que almacena los tipos de los elementos, por ejemplo:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">HCons</span> <span class="st">&quot;Hi&quot;</span> (<span class="dt">HCons</span> <span class="dt">True</span> <span class="dt">HNil</span>)<span class="ot"> ::</span> <span class="dt">HList</span> (<span class="dt">String</span><span class="fu">:</span> <span class="dt">Bool</span> <span class="fu">:</span> <span class="ch">'[])</span></code></pre></div>
+<p>es una lista heterogenea con dos valores de tipos distintos.</p>
+<h2 id="section-1"></h2>
+<p>Haskell permite la sintaxis <code>[a,b]</code> para la lista explícita <code>(a:b:[])</code>, y tambien esto se extiende a la sintaxis de los tipos, entonces:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">HCons</span> <span class="st">&quot;Hi&quot;</span> (<span class="dt">HCons</span> <span class="dt">True</span> <span class="dt">HNil</span>)<span class="ot"> ::</span> <span class="dt">HList</span> <span class="ch">'[String,Bool]</span></code></pre></div>
+<p>Observar la apóstrofe para distinguir la lista al nivel de los tipos, del tipo &quot;lista&quot; en, por ejemplo, <code>reverse :: [a] -&gt; [a]</code>.</p>
+<h2 id="section-2"></h2>
+<p>¿Cuál es el tipo del constructor de datos promovido <code>'(:)</code>?</p>
+<p>Como el constructor de datos <code>(:)</code> es polimórfico sobre tipos, el constructor promovido <code>'(:)</code> debe ser polimórfico sobre kinds:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ch">'(:) :: forall k . k -&gt; [k] -&gt; [k]</span></code></pre></div>
+<p>donde <code>k</code> una variable de kinds.</p>
+<h2 id="restricciones-de-datakinds-1">Restricciones de <code>DataKinds</code> 1</h2>
+<p>Con <code>DataKinds</code>, GHC promueve automáticamente cada tipo de datos a un kind, y sus constructores (de valores) a constructores de tipos:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Nat</span> <span class="fu">=</span> <span class="dt">Zero</span> <span class="fu">|</span> <span class="dt">Succ</span> <span class="dt">Nat</span>
+<span class="kw">data</span> <span class="dt">List</span> a <span class="fu">=</span> <span class="dt">Nil</span> <span class="fu">|</span> <span class="dt">Cons</span> a (<span class="dt">List</span> a)
+<span class="kw">data</span> <span class="dt">Pair</span> a b <span class="fu">=</span> <span class="dt">Pair</span> a b
+<span class="kw">data</span> <span class="dt">Sum</span> a b <span class="fu">=</span> <span class="dt">L</span> a <span class="fu">|</span> <span class="dt">R</span> b</code></pre></div>
+<pre><code>Nat :: *
+'Zero :: Nat
+'Succ :: Nat -&gt; Nat
+
+List :: * -&gt; *
+'Nil  :: forall k. List k
+'Cons :: forall k. k -&gt; List k -&gt; List k
+
+Pair  :: * -&gt; * -&gt; *
+'Pair :: forall k1 k2. k1 -&gt; k2 -&gt; Pair k1 k2
+
+Sum :: * -&gt; * -&gt; *
+'L :: k1 -&gt; Sum k1 k2
+'R :: k2 -&gt; Sum k1 k2</code></pre>
+<h2 id="restricciones-de-datakinds-2">Restricciones de <code>DataKinds</code> 2</h2>
+<p>La promoción tiene las siguientes restricciones:</p>
+<ul>
+<li><p>se promueven <code>data</code> y <code>newtype</code> pero no sinónimos de tipos, tampoco type families.</p></li>
+<li><p>solo se promueven tipos que tienen kinds de la forma <code>* -&gt; ... -&gt; * -&gt; *</code>. En particular, no se promueven tipos con kinds de alto orden como <code>data Fix f = In (f (Fix f))</code>, o tipos de datos cuyos kinds involucran a tipos promovidos, como <code>Vec :: * -&gt; Nat -&gt; *</code>.</p></li>
+<li><p>tampoco se promueven constructores de datos que tienen kinds polimórficos, involucran restricciones de clases de tipos (<code>data T x = Ord x =&gt; T x</code>), mencionan type families o involucran tipos no promocionables</p></li>
+</ul>
+<h2 id="averiguar-kinds-en-ghci">Averiguar kinds en GHCi</h2>
+<p>Solo los tipos cuyos kind es <code>*</code> pueden ser habitados (= tener valores). Por lo cual no se puede hacer lo siguiente en GHCi:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">Maybe</span>) <span class="co">-- Maybe :: * -&gt; *</span>
+<span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="ch">'S '</span><span class="dt">Z</span>) <span class="co">-- 'S 'Z :: Nat</span></code></pre></div>
+<p>Pero se puede directamente pedir el kind de estos tipos:</p>
+<pre><code>&gt; :kind Num Int
+Num Int :: Constraint
+&gt; :kind 'S 'Z
+'S 'Z :: Nat</code></pre>
+<p>Para forzar la evaluación de las funciones sobre tipos (type families) usar el comando <code>:kind!</code> :</p>
+<pre><code>&gt; :kind! ('S 'Z :+ 'S 'Z)
+'S ('S 'Z) :: Nat</code></pre>
+<h2 id="typeintype"><code>TypeInType</code></h2>
+<p>La extensión <code>TypeInType</code> suelta algunas restricciones:</p>
+<ul>
+<li>promoción de sinónimos de tipos y familias de tipos, pero no de data families (el sistema de tipos de GHC no soportaría lo último)</li>
+<li>todos los tipos de datos, incluso con kinds elaborados, son promocionados, por ejemplo:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Proxy</span> a <span class="fu">=</span> <span class="dt">Proxy</span>
+<span class="kw">data</span> <span class="dt">App</span> f a <span class="fu">=</span> <span class="dt">MkApp</span> (f a)   <span class="co">-- App :: forall k. (k -&gt; *) -&gt; k -&gt; *</span>
+x <span class="fu">=</span> <span class="dt">Proxy</span><span class="ot"> ::</span> <span class="dt">Proxy</span> (<span class="ch">'MkApp ('</span><span class="dt">Just</span> <span class="ch">'True))</span></code></pre></div>
+<h2 id="vista-general-de-typeintype">Vista general de <code>TypeInType</code></h2>
+<p>GHC 8 declara que los tipos y los kinds son una sola cosa.</p>
+<p>Nada dentro de GHC distingue entre esas dos cosas.</p>
+<p>Por ejemplo el tipo <code>Bool</code> y el &quot;kind promovido&quot; <code>Bool</code> son iguales.</p>
+<p>A pesar de eso, el término <code>True</code> y el tipo <code>'True</code> siguen distintos, porque el primero puede ser usado en expresiones y el segundo en tipos.</p>
+<p>Esta falta de distincción entre tipos y kinds es característico de los lenguajes con <em>tipos dependientes</em>.</p>
+<p>Los lenguajes con tipos <em>completamente</em> dependientes también levantan la diferencia entre expresiones y tipos, pero hacerlo en GHC no va a ocurrir pronto.</p>
+<h2 id="porqué-no-tipos-totalmente-dependientes">¿Porqué no tipos totalmente dependientes?</h2>
+<p>La idea de <code>TypeInType</code> es colapsar tipos y kinds juntos.</p>
+<p>Una alternativa es tener una jerarquía infinita: <code>Tipos1 :: Tipos2 :: Tipos3 :: ...</code> (como en Coq).</p>
+<p>Una pregunta sería ¿porqué no colapsar también tipos/kinds y valores, y así tener un lenguaje con tipos dependiente de verdad?</p>
+<p>Mantener valores separados permite &quot;erasure semantics&quot;: todo lo que está al nivel de las expresiones es requerido para la ejecución, y todo lo que está al nivel tipo/kind puede ser borrado para la ejecución porqué no tiene sentido al nivel calculatorio.</p>
+<p>Todavia es una area de investigación muy activa el &quot;erasure analisis&quot; para lenguajes que tienen un colapso completo entre niveles de expresión y de tipos.</p>
+<h2 id="para-explorar">Para explorar</h2>
+<ul>
+<li><p>Hoja de ruta para tipos dependientes en GHC 8.2, 8.4 y 8.6 <a href="https://typesandkinds.wordpress.com/2016/07/24/dependent-types-in-haskell-progress-report/" class="uri">https://typesandkinds.wordpress.com/2016/07/24/dependent-types-in-haskell-progress-report/</a></p></li>
+<li><p>Estatus actual de los tipos dependientes en GHC <a href="https://ghc.haskell.org/trac/ghc/wiki/DependentHaskell" class="uri">https://ghc.haskell.org/trac/ghc/wiki/DependentHaskell</a></p></li>
+<li><p>Type level programming in Haskell (series de 4 posts del 2010): <a href="https://byorgey.wordpress.com/2010/06/29/typed-type-level-programming-in-haskell-part-i-functional-dependencies/" class="uri">https://byorgey.wordpress.com/2010/06/29/typed-type-level-programming-in-haskell-part-i-functional-dependencies/</a></p></li>
+<li><p>Comparación con el lenguaje Agda (en la sección Dependent Types) <a href="https://ocharles.org.uk/blog/guest-posts/2014-12-18-rank-n-types.html" class="uri">https://ocharles.org.uk/blog/guest-posts/2014-12-18-rank-n-types.html</a></p></li>
+<li><p>An introduction to DataKinds and GHC.TypeLits <a href="http://ponies.io/posts/2014-07-30-typelits.html" class="uri">http://ponies.io/posts/2014-07-30-typelits.html</a></p></li>
+<li><p>Dependent Types in Haskell - School of Haskell <a href="https://www.schoolofhaskell.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell" class="uri">https://www.schoolofhaskell.com/user/konn/prove-your-haskell-for-great-safety/dependent-types-in-haskell</a></p></li>
+</ul>
+</body>
+</html>

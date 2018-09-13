@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Guillaume Hoffmann" />
+  <title>El sistema de tipos de Haskell | 1/5</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Amax%2Dwidth%3A%2040em%3B%0Amargin%3A%20auto%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Atable%20%7B%0Aborder%3A%201px%20solid%3B%0Aborder%2Dspacing%3A%205px%200%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">El sistema de tipos de Haskell | 1/5</h1>
+<h2 class="author">Guillaume Hoffmann</h2>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="parte1.html#presentaciones">Presentaciones</a><ul>
+<li><a href="parte1.html#su-humilde-servidor">Su humilde servidor</a></li>
+</ul></li>
+<li><a href="parte1.html#porqué-este-curso">¿Porqué este curso?</a><ul>
+<li><a href="parte1.html#porqué-haskell">Porqué Haskell</a></li>
+<li><a href="parte1.html#el-temido-piramide-de-haskell">El temido piramide de Haskell</a></li>
+<li><a href="parte1.html#ustedes">Ustedes</a></li>
+<li><a href="parte1.html#contenido-plan">Contenido / Plan</a></li>
+<li><a href="parte1.html#para-qué-necesitamos-a-los-sistemas-de-tipos">Para qué necesitamos a los sistemas de tipos</a></li>
+</ul></li>
+<li><a href="parte1.html#día-1">Día 1</a><ul>
+<li><a href="parte1.html#temas">Temas</a></li>
+<li><a href="parte1.html#preparándonos">Preparándonos</a></li>
+<li><a href="parte1.html#machete-ghci">Machete GHCi</a></li>
+<li><a href="parte1.html#uso-básico-de-ghci">Uso básico de GHCi</a></li>
+<li><a href="parte1.html#anotaciones-de-tipo">Anotaciones de tipo</a></li>
+<li><a href="parte1.html#huecos-tipados">Huecos tipados</a></li>
+<li><a href="parte1.html#section"></a></li>
+<li><a href="parte1.html#inferencia-de-tipos">Inferencia de tipos</a></li>
+<li><a href="parte1.html#unificación">Unificación</a></li>
+<li><a href="parte1.html#errores-de-tipeo">Errores de tipeo</a></li>
+<li><a href="parte1.html#ejemplos-de-inferencia-de-tipos-con-unificacion">Ejemplos de inferencia de tipos con unificacion</a></li>
+<li><a href="parte1.html#tipos-de-datos-algebraicos-palabra-clave-data">Tipos de datos algebraicos (palabra-clave <code>data</code>)</a></li>
+<li><a href="parte1.html#sobrecarga-de-funciones">Sobrecarga de funciones</a></li>
+<li><a href="parte1.html#repaso-de-clases-de-tipos-conocidas">Repaso de clases de tipos conocidas</a></li>
+<li><a href="parte1.html#ejemplos-de-clases-de-tipos">Ejemplos de clases de tipos</a></li>
+<li><a href="parte1.html#definiendo-instancias">Definiendo instancias</a></li>
+<li><a href="parte1.html#ejercicio">Ejercicio</a></li>
+<li><a href="parte1.html#la-clase-monoid">La clase <code>Monoid</code></a></li>
+<li><a href="parte1.html#instancias-y-modulos-haskell">Instancias y modulos Haskell</a></li>
+<li><a href="parte1.html#instancias-huerfanas">Instancias huerfanas</a></li>
+<li><a href="parte1.html#porqué-hay-que-evitar-las-instancias-huerfanas">Porqué hay que evitar las Instancias Huerfanas</a></li>
+<li><a href="parte1.html#para-saber-mas-sobre-ese-debate">Para saber mas sobre ese debate</a></li>
+<li><a href="parte1.html#conclusiones">Conclusiones</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="presentaciones">Presentaciones</h1>
+<h2 id="su-humilde-servidor">Su humilde servidor</h2>
+<ul>
+<li>Guillaume Hoffmann <code>[guióm]</code> <code>guillaumh@gmail.com</code></li>
+<li>Cordobés desde el 2011</li>
+<li>Investigador CONICET en la UNC
+<ul>
+<li>lógica matemática</li>
+</ul></li>
+<li>Profesor en la Universidad Blas Pascal
+<ul>
+<li>introducción a la programación (C)</li>
+<li>programación declarativa (Haskell)</li>
+</ul></li>
+<li>Mantenedor de Darcs (Haskell)</li>
+</ul>
+<h1 id="porqué-este-curso">¿Porqué este curso?</h1>
+<h2 id="porqué-haskell">Porqué Haskell</h2>
+<ul>
+<li>el lenguaje funcional más enseñado en Argentina</li>
+<li>tiene cierta masa critica mundialmente</li>
+<li>sistema de tipos relativamente preciso</li>
+<li>está vivo / pasan cosas interesantes</li>
+<li>hay empleo</li>
+</ul>
+<h2 id="el-temido-piramide-de-haskell">El temido piramide de Haskell</h2>
+<pre><code>^    más complejo
+|   
+|         / \          &lt;- lo que se publica en internet
+|        /   \
+|       /     \ 
+|      /       \       &lt;- poco material de eso
+|     /         \ 
+|    /           \
+|   /             \    &lt;- lo que hay que saber para empezar
+|   ---------------
+|   
+|    menos complejo</code></pre>
+<div class="incremental">
+<ul>
+<li>modificar software existente es complicado</li>
+<li>errores de tipos misteriosos</li>
+<li>el objetivo es ser más proficiente en modificar software Haskell</li>
+</ul>
+</div>
+<h2 id="ustedes">Ustedes</h2>
+<p>¿Quiénes son? :)</p>
+<p>Este curso supone que ya saben:</p>
+<ul>
+<li>recursividad</li>
+<li>estructuras de datos funcionales</li>
+<li>map, filter, foldr</li>
+</ul>
+<p>Y no cubre:</p>
+<ul>
+<li>laziness</li>
+<li>performancia</li>
+</ul>
+<h2 id="contenido-plan">Contenido / Plan</h2>
+<ol style="list-style-type: decimal">
+<li>Lunes: tipos, clases de tipos, Monoid</li>
+<li>Martes: IO, Functor, Applicative, Monad, newtype</li>
+<li>Miércoles: multiclases, functional dependencies, type families</li>
+<li>Jueves: GADTs, tipos fantasmas, tipos existenciales</li>
+<li>Viernes: RankNTypes, DataKinds, TypeInType</li>
+</ol>
+<h2 id="para-qué-necesitamos-a-los-sistemas-de-tipos">Para qué necesitamos a los sistemas de tipos</h2>
+<blockquote>
+<p>Los sistemas de tipos sirven para hacer programas correctos e impedir que se puedan representar estados incorrectos.</p>
+<p>Julie Moroniki - <em>Haskell Programming from first principles</em></p>
+</blockquote>
+<div class="incremental">
+<blockquote>
+<p>&quot;A type system is a <strong>tractable</strong> syntactic method of <strong>proving the absence</strong> of certain program behaviors by classifying phrases according to the kinds of values they compute.”</p>
+<p>Benjamin Pierce - <em>Types and Programming Languages</em></p>
+</blockquote>
+</div>
+<div class="incremental">
+<ul>
+<li>Ayuda a clarificar el pensamiento y expresar la estructura de un programa</li>
+<li>Es una forma de documentación</li>
+<li>Convierte errores de ejecución en errores de compilación</li>
+</ul>
+</div>
+<h1 id="día-1">Día 1</h1>
+<h2 id="temas">Temas</h2>
+<ul>
+<li>uso de GHCi</li>
+<li>tipos algebraícos en Haskell estándar</li>
+<li>polimorfismo</li>
+<li>inferencia de tipos</li>
+<li>clases de tipos</li>
+<li>kinds</li>
+<li>instancias huérfanas</li>
+<li>newtype</li>
+</ul>
+<h2 id="preparándonos">Preparándonos</h2>
+<ul>
+<li>tengamos GHC 8.0 o más</li>
+<li>GHC 8.2 tiene mensajes de errores más lindos</li>
+<li>bajar desde <a href="http://www.haskell.org/ghc" class="uri">http://www.haskell.org/ghc</a></li>
+</ul>
+<h2 id="machete-ghci">Machete GHCi</h2>
+<p><code>ghci</code> es el intérprete, <code>ghc</code> el compilador.</p>
+<ul>
+<li><p><code>ghci archivo.hs</code></p></li>
+<li><p>editar archivo corriente <code>:e</code></p></li>
+<li><p>listar funciones del módulo corriente : <code>:browse</code></p></li>
+<li><p>pedir tipo de una expresión: <code>:t expresion</code></p></li>
+<li><p>pedir más datos sobre expresión/tipo/clase: <code>:info bla</code></p></li>
+<li><p>elegir un editor potable: <code>:set editor vi</code></p></li>
+<li><p>salir: <code>CTRL+D</code></p></li>
+</ul>
+<h2 id="uso-básico-de-ghci">Uso básico de GHCi</h2>
+<p>Evaluar expresiones y mostrar su valor:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> <span class="dv">10</span> <span class="fu">+</span> <span class="dv">12</span>
+<span class="dv">22</span>
+
+<span class="fu">&gt;</span> <span class="st">&quot;Hola&quot;</span> <span class="fu">++</span> <span class="st">&quot; mundo&quot;</span>
+<span class="st">&quot;Hola mundo&quot;</span>
+
+<span class="fu">&gt;</span> words <span class="st">&quot;Hola mundo&quot;</span>
+[<span class="st">&quot;Hola&quot;</span>,<span class="st">&quot;Mundo&quot;</span>]
+
+<span class="fu">&gt;</span> map show <span class="st">&quot;abcdefg&quot;</span>
+[<span class="st">&quot;'a'&quot;</span>,<span class="st">&quot;'b'&quot;</span>,<span class="st">&quot;'c'&quot;</span>,<span class="st">&quot;'d'&quot;</span>,<span class="st">&quot;'e'&quot;</span>,<span class="st">&quot;'f'&quot;</span>,<span class="st">&quot;'g'&quot;</span>]</code></pre></div>
+<h2 id="anotaciones-de-tipo">Anotaciones de tipo</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> <span class="fu">:</span>t <span class="st">&quot;Hola&quot;</span>
+<span class="st">&quot;Hola&quot;</span><span class="ot"> ::</span> [<span class="dt">Char</span>]
+
+<span class="fu">&gt;</span> <span class="fu">:</span>t []
+[]<span class="ot"> ::</span> [a]
+
+<span class="fu">&gt;</span> <span class="fu">:</span>t [] <span class="fu">++</span> []
+[] <span class="fu">++</span> []<span class="ot"> ::</span> [a]
+
+<span class="fu">&gt;</span> <span class="fu">:</span>t <span class="dv">10</span>
+<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Num</span> p <span class="ot">=&gt;</span> p</code></pre></div>
+<div class="incremental">
+<p>Se pueden poner en código Haskell para precisar algun tipo:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> <span class="fu">:</span>t []<span class="ot"> ::</span> [<span class="dt">Int</span>]
+[]<span class="ot"> ::</span> [<span class="dt">Int</span>]<span class="ot"> ::</span> [<span class="dt">Int</span>]
+
+<span class="fu">&gt;</span> <span class="fu">:</span>t <span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span>
+<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span><span class="ot"> ::</span> <span class="dt">Integer</span></code></pre></div>
+</div>
+<h2 id="huecos-tipados">Huecos tipados</h2>
+<ul>
+<li>La expresión <code>_</code> (guión bajo) es un <em>hueco</em></li>
+<li>genera un error cuando se evalua</li>
+<li>GHC(i) nos dice su tipo en el mensaje de error</li>
+</ul>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> [_]<span class="ot"> ::</span> [<span class="dt">Int</span>]
+
+<span class="fu">&lt;</span>interactive<span class="fu">&gt;:</span><span class="dv">10</span><span class="fu">:</span><span class="dv">2</span><span class="fu">:</span> error<span class="fu">:</span>
+    • <span class="dt">Found</span> hole<span class="fu">:</span><span class="ot"> _ ::</span> <span class="dt">Int</span>
+    • <span class="dt">In</span> the expression<span class="fu">:</span> _
+      <span class="dt">In</span> the expression<span class="fu">:</span> [_]<span class="ot"> ::</span> [<span class="dt">Int</span>]
+      <span class="dt">In</span> an equation for ‘it’<span class="fu">:</span> it <span class="fu">=</span> [_]<span class="ot"> ::</span> [<span class="dt">Int</span>]
+    • <span class="dt">Relevant</span> bindings include
+<span class="ot">        it ::</span> [<span class="dt">Int</span>] (bound at <span class="fu">&lt;</span>interactive<span class="fu">&gt;:</span><span class="dv">10</span><span class="fu">:</span><span class="dv">1</span>)</code></pre></div>
+</div>
+<h2 id="section"></h2>
+<p>Probar:</p>
+<pre><code>&gt; _ :: Int
+&gt; _ :: Maybe Char
+&gt; _ :: Int Char
+&gt; _ :: Maybe Maybe</code></pre>
+<h2 id="inferencia-de-tipos">Inferencia de tipos</h2>
+<p>Haskell tiene <em>inferencia de tipos</em>.</p>
+<p>No hace falta indicar todos los tipos de las funciones porque los tipos conocidos se <em>propagan</em> al resto del código.</p>
+<p>El mecanismo de esa propagación es la <em>unificación</em>.</p>
+<h2 id="unificación">Unificación</h2>
+<p>Algoritmo nacido en lógica (usado en lógica de primer orden por ejemplo).</p>
+<p>Dados dos términos conteniendo alguna variable, encontrar, si existe, la sustitución más simple (es decir, una asignación de algún termino a cada variable) que hace iguales a los dos términos. La sustitución resultante se llama unificador <em>más general</em> (<em>most general unifier</em>).</p>
+<div class="incremental">
+<p>Terminos unificables:</p>
+<ul>
+<li>a, b</li>
+<li>a , Char</li>
+<li>[a] , [Int]</li>
+<li>Maybe a , Maybe String</li>
+<li>Either String a , Either b Int</li>
+</ul>
+</div>
+<div class="incremental">
+<p>Terminos no unificables:</p>
+<ul>
+<li>Char, Int</li>
+<li>Maybe Int, [Int]</li>
+</ul>
+</div>
+<h2 id="errores-de-tipeo">Errores de tipeo</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">Prelude</span><span class="fu">&gt;</span> (<span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>) <span class="fu">+</span>  (<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span>)
+
+<span class="fu">&lt;</span>interactive<span class="fu">&gt;:</span><span class="dv">3</span><span class="fu">:</span><span class="dv">16</span><span class="fu">:</span> error<span class="fu">:</span>
+    • <span class="dt">Couldn't</span> match expected <span class="kw">type</span> ‘<span class="dt">Int</span>’ with actual <span class="kw">type</span> ‘<span class="dt">Integer</span>’
+    • <span class="dt">In</span> the second argument <span class="kw">of</span> ‘(<span class="fu">+</span>)’, namely ‘(<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span>)’
+      <span class="dt">In</span> the expression<span class="fu">:</span> (<span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>) <span class="fu">+</span> (<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span>)
+      <span class="dt">In</span> an equation for ‘it’<span class="fu">:</span> it <span class="fu">=</span> (<span class="dv">1</span><span class="ot"> ::</span> <span class="dt">Int</span>) <span class="fu">+</span> (<span class="dv">10</span><span class="ot"> ::</span> <span class="dt">Integer</span>)</code></pre></div>
+<div class="incremental">
+<p>Cuando falla la unificación, tenemos un error de tipeo. GHC nos informa la discrepancia entre tipo esperado y tipo encontrado.</p>
+<p>Esos mensages pueden ser más complejos que en un lenguaje sin inferencia de tipos.</p>
+<p>Porque el lugar donde la unificación falla no es siempre donde intuitivamente está el error.</p>
+</div>
+<h2 id="ejemplos-de-inferencia-de-tipos-con-unificacion">Ejemplos de inferencia de tipos con unificacion</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">map f [] <span class="fu">=</span> []
+map f (first<span class="fu">:</span>rest) <span class="fu">=</span> f first <span class="fu">:</span> map f rest</code></pre></div>
+<ul>
+<li>Tipo de map: <code>a -&gt; b -&gt; c</code></li>
+<li><code>b = [d]</code></li>
+<li><code>f :: d -&gt; e</code></li>
+<li><code>c = [e]</code></li>
+</ul>
+<h2 id="tipos-de-datos-algebraicos-palabra-clave-data">Tipos de datos algebraicos (palabra-clave <code>data</code>)</h2>
+<ul>
+<li><p>Si ningun constructor tiene parametros, se llama <em>tipo enumerado</em>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Dia</span> <span class="fu">=</span> <span class="dt">Lunes</span> <span class="fu">|</span> <span class="dt">Martes</span> <span class="fu">|</span> <span class="dt">Miercoles</span> <span class="fu">|</span> <span class="dt">Jueves</span> <span class="fu">|</span> <span class="dt">Viernes</span> <span class="fu">|</span> <span class="dt">Sabado</span></code></pre></div></li>
+<li><p>Si tiene un solo constructor, se llama <em>tipo producto</em></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Coord</span> <span class="fu">=</span> <span class="dt">Coord</span> <span class="dt">Int</span> <span class="dt">Int</span></code></pre></div></li>
+<li><p>Un tipo con múltiples constructores se llama <em>tipo suma</em></p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Either</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b</code></pre></div></li>
+<li><p>Un tipo sin constructores se llama <em>tipo vacío</em> (a veces, sirve):</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Vacio</span></code></pre></div></li>
+</ul>
+<h2 id="sobrecarga-de-funciones">Sobrecarga de funciones</h2>
+<p>En programación, suele pasar que queremos sobrecarga de algunas funciones = un mismo nombre de función con distintas implementaciones según el contexto:</p>
+<ul>
+<li><code>+</code></li>
+<li><code>==</code></li>
+<li><code>&gt;=</code></li>
+</ul>
+<p>¿Cómo integrar bien la sobrecarga en un lenguaje como Haskell?</p>
+<div class="incremental">
+<p>Solucion en Haskell:</p>
+<blockquote>
+<p><em>la sobrecarga se debería reflejar en el tipo de una función</em></p>
+</blockquote>
+<p>Y así nacieron las clases de tipos.</p>
+</div>
+<h2 id="repaso-de-clases-de-tipos-conocidas">Repaso de clases de tipos conocidas</h2>
+<p>Ejecutar en GHCi:</p>
+<pre><code>&gt; :info Eq
+&gt; :info Ord
+&gt; :info Num</code></pre>
+<p>Observamos:</p>
+<ul>
+<li><code>MINIMAL</code></li>
+<li>contextos en definición de clases</li>
+<li>contextos en instancias</li>
+</ul>
+<h2 id="ejemplos-de-clases-de-tipos">Ejemplos de clases de tipos</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Eq</span> a <span class="kw">where</span>
+<span class="ot">  (==) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span>
+<span class="ot">  (/=) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">Bool</span></code></pre></div>
+<div class="incremental">
+<p>Función usando sobrecarga:</p>
+<pre><code>member :: Eq a =&gt; a -&gt; [a] -&gt; Bool
+member x []                 = False
+member x (y:ys) | x==y      = True
+                | otherwise = member x ys</code></pre>
+</div>
+<h2 id="definiendo-instancias">Definiendo instancias</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Coord</span> <span class="fu">=</span> <span class="dt">Coord</span> <span class="dt">Int</span> <span class="dt">Int</span>
+
+<span class="kw">instance</span> <span class="dt">Eq</span> <span class="dt">Coord</span> <span class="kw">where</span>
+  <span class="dt">C</span> x1 y1 <span class="fu">==</span> <span class="dt">C</span> x2 y2 <span class="fu">=</span> x1 <span class="fu">==</span> x2 <span class="fu">&amp;&amp;</span> y1 <span class="fu">==</span> y2
+  c1 <span class="fu">/=</span> c2 <span class="fu">=</span> not (c1 <span class="fu">==</span> c2)</code></pre></div>
+<div class="incremental">
+<p>Instancia para tipo polimórfico:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> (<span class="dt">Eq</span> a) <span class="ot">=&gt;</span> <span class="dt">Eq</span> [a] <span class="kw">where</span>
+  []     <span class="fu">==</span> []     <span class="fu">=</span> <span class="dt">True</span>
+  (x<span class="fu">:</span>xs) <span class="fu">==</span> (y<span class="fu">:</span>ys) <span class="fu">=</span> (x <span class="fu">==</span> y) <span class="fu">&amp;&amp;</span> (xs <span class="fu">==</span> ys)
+  xs     <span class="fu">/=</span> ys     <span class="fu">=</span> not (xs <span class="fu">==</span> ys)</code></pre></div>
+</div>
+<h2 id="ejercicio">Ejercicio</h2>
+<p>¿Los polinomios pueden ser números?</p>
+<p>Veamos el práctico.</p>
+<h2 id="la-clase-monoid">La clase <code>Monoid</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Monoid</span> a <span class="kw">where</span>
+<span class="ot">  mempty ::</span> a
+<span class="ot">  mappend ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+<span class="ot">  mconcat ::</span> [a] <span class="ot">-&gt;</span> a
+  <span class="ot">{-# MINIMAL mempty, mappend #-}</span></code></pre></div>
+<div class="incremental">
+<p>Las instancias de Monoid deben seguir ciertas leyes:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">mappend mempty x <span class="fu">=</span> x
+
+mappend x mempty <span class="fu">=</span> x
+
+mappend x (mappend y z) <span class="fu">=</span> mappend (mappend x y) z
+
+mconcat <span class="fu">=</span> foldr mappend mempty</code></pre></div>
+</div>
+<h2 id="instancias-y-modulos-haskell">Instancias y modulos Haskell</h2>
+<p>En Haskell, las instancias no tienen nombre.</p>
+<p>Cuando se importa un módulo M, se importan todas las instancias definidas adentro, no se puede elegir cuáles:</p>
+<ul>
+<li>no se pueden importar explicitamente</li>
+<li>no se pueden excluir explicitamente</li>
+<li>todas las instqancias de M se importan cuando se importa M o cuando se importa algun modulo que importa M (directamente o indirectamente)</li>
+</ul>
+<h2 id="instancias-huerfanas">Instancias huerfanas</h2>
+<p>hay 3 lugares posibles para definir una instancia C T:</p>
+<ul>
+<li>en el módulo donde se define C</li>
+<li>en el módulo donde se define T</li>
+<li>en otro módulo (pero que importe los módulos donde se definen C y T)</li>
+</ul>
+<p>El último caso es el caso de una instancia huérfana. GHC emite un warning cuando encuentra una.</p>
+<h2 id="porqué-hay-que-evitar-las-instancias-huerfanas">Porqué hay que evitar las Instancias Huerfanas</h2>
+<p>Porque puede haber colisiones de instancias para un mismo par C y T.</p>
+<p>Recordar que no se pueden excluir instancias cuando se importa un módulo.</p>
+<p>Si se esta diseñando una libreria, esta mal visto tener instancias huerfanas.</p>
+<p>Atenta a la modularidad de las librerias.</p>
+<p>Si es una aplicacion, cierta gente las tolera.</p>
+<p>Otros lenguajes las prohiben directamente (PureScript).</p>
+<h2 id="para-saber-mas-sobre-ese-debate">Para saber mas sobre ese debate</h2>
+<ul>
+<li><a href="http://wiki.haskell.org/Multiple_instances" class="uri">http://wiki.haskell.org/Multiple_instances</a></li>
+<li><a href="http://wiki.haskell.org/Orphan_Instances" class="uri">http://wiki.haskell.org/Orphan_Instances</a></li>
+<li><a href="http://stackoverflow.com/questions/3079537" class="uri">http://stackoverflow.com/questions/3079537</a> &quot;Orphaned instances in Haskell&quot; (2010)</li>
+</ul>
+<p>Porqué permitir importar explicitamente puede causar problemas:</p>
+<p><a href="https://stackoverflow.com/questions/8728596/explicitly-import-instances/8731340#8731340" class="uri">https://stackoverflow.com/questions/8728596/explicitly-import-instances/8731340#8731340</a></p>
+<h2 id="conclusiones">Conclusiones</h2>
+<p>Para mañana:</p>
+<ul>
+<li>completar el práctico</li>
+<li>si hace falta, ejercicios en Mumuki (ver página de la materia)</li>
+</ul>
+</body>
+</html>

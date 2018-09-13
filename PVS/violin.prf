@@ -1,0 +1,11 @@
+(violin
+ (doble_inversion 0
+  (doble_inversion-1 nil 3728479395
+   ("" (lemma Forro_forro_eta) (("" (grind) nil nil)) nil)
+   ((invertir const-decl "Forro" violin nil)
+    (forro? adt-recognizer-decl "[Forro -> boolean]" violin nil)
+    (boolean nonempty-type-decl nil booleans nil)
+    (Forro type-decl nil violin nil)
+    (Forro_forro_eta formula-decl nil violin nil))
+   shostak)))
+

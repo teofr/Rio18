@@ -1,0 +1,61 @@
+ex6: THEORY
+BEGIN
+
+  Phonebook: DATATYPE
+  BEGIN
+    empty_phonebook: empty?
+    add_phone(name: string, phone: string, pb: Phonebook): add_phone?
+  END Phonebook
+
+  size(phonebook: Phonebook): RECURSIVE nat =
+    CASES phonebook OF
+      empty_phonebook: 0,
+      add_phone(n, p, pb): 1 + size(pb)
+    ENDCASES
+  MEASURE phonebook BY <<
+
+  % Provide a definition for the following functions.
+  % Remember to use M-x tc to typecheck the file.
+  % Once finished, send ex6.pvs and ex6.prf by email
+
+  % registered?(name, phonebook) is TRUE iff name is in the phonebook
+  registered?(name: string, phonebook: Phonebook): RECURSIVE bool =
+    CASES phonebook OF
+      empty_phonebook: FALSE,
+      add_phone(n, p, b): n = name OR registered?(name, b)
+    ENDCASES
+  MEASURE phonebook BY <<
+      
+    % COMPLETE
+
+  % find_phone returns the phone number correspoding to the specified name.
+  find_phone(name: string, (phonebook: Phonebook | registered?(name,phonebook))): RECURSIVE string = 
+    CASES phonebook OF
+      add_phone(n, p, pb): IF n = name THEN p ELSE find_phone(name, pb) ENDIF
+    ENDCASES
+  MEASURE phonebook BY <<
+    % COMPLETE
+
+  % remove(name,phonebook) removes name from the phonebook
+  remove(name: string, (phonebook: Phonebook | registered?(name,phonebook))): RECURSIVE Phonebook =
+    CASES phonebook OF
+      add_phone(n, p, pb):
+        IF n = name THEN
+	  IF registered?(n, pb) THEN
+	    remove(name, pb)
+	  ELSE
+	    pb
+	  ENDIF
+	ELSE add_phone(n, p, remove(name, pb))
+        ENDIF
+    ENDCASES
+  MEASURE phonebook by <<
+  % COMPLETE
+
+  % prove the following lemma
+  remove_correctness: LEMMA
+    FORALL(pb: Phonebook):
+      FORALL(name: string):
+        registered?(name,pb) IMPLIES NOT registered?(name,remove(name,pb))
+  
+END ex6

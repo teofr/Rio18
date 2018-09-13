@@ -1,0 +1,40 @@
+ex5: THEORY
+BEGIN
+
+  % Prove the following theorem
+  % To prove: with the cursor on the formula to prove, M-x pr (or C-c C-p).
+  % Once finished, send ex5.pvs and ex5.prf to mariano.moscato@nianet.org
+  
+  % Sample inductive definitions, use M-x ppe to see automatically
+  % generated induction schemas
+
+  even(n:nat): INDUCTIVE bool = 
+    n = 0 OR (n > 1 AND even(n - 2))
+
+  n: VAR nat
+  m: VAR nat
+  
+  after_even: LEMMA
+    even(n) IMPLIES NOT even(n+1)
+
+  we_are_even: LEMMA 
+    even(n) IMPLIES even?(n)
+
+  por_par: LEMMA
+    even(n) => even(n*m)
+
+   mas_par: LEMMA
+    (even(n) & even(m)) => even(n+m)
+    
+  % Hints: the following proof commands could be useful
+  % (rule-induct ...)
+  % (skeep)
+  % (expand ...)
+  % (split)
+  % (inst ...)
+  % (assert)
+  % (flatten)
+  % (skeep ...)
+  % (assert)
+
+END ex5

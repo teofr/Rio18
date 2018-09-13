@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>El sistema de tipos de Haskell/GHC y sus extensiones</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%23232323%3B%0Afont%2Dfamily%3A%22Trebuchet%20MS%22%2C%20Arial%2C%20sans%2Dserif%3B%0Awidth%3A40em%3B%0Amargin%3A0%20auto%3B%0Aborder%3A4px%20solid%20%23333%3B%0Abackground%2Dcolor%3A%231F1F1F%3B%0Apadding%3A0%2010px%200%2010px%3B%0Amargin%2Dtop%3A5px%3B%0Acolor%3A%23ccc%3B%0Afont%2Dsize%3A15px%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Aa%2C%20a%3Avisited%2C%20a%3Aactive%7B%0Acolor%3A%234684C1%3B%0A%7D%0Aa%3Ahover%7B%0Acolor%3A%23333px%3B%0A%7D%0A%23header%20%7B%0Aheight%3A100px%3B%0A%7D%0A%23nav%20%7B%0Awidth%3A250px%3B%0Amargin%3A0%20auto%3B%0Aborder%3A1px%20solid%20%23333%3B%0Aborder%2Dtop%3A0px%3B%0Atext%2Dalign%3Acenter%3B%0A%7D%0A%23nav%20ul%2C%20%23nav%20li%7B%0Amargin%3A0px%3B%0Apadding%3A0px%3B%0A%7D%0A%23nav%20li%7B%0Adisplay%3A%20inline%3B%0Alist%2Dstyle%3Anone%3B%0Amargin%3A0%205px%200%205px%3B%0Afont%2Dsize%3A14px%3B%0A%7D%0A%23nav%20li%20a%20%7B%0Acolor%3A%234684C1%3B%0Atext%2Ddecoration%3Anone%3B%0A%7D%0A%23nav%20li%20a%3Ahover%7B%0Aborder%2Dbottom%3A1px%20solid%20%234684C1%3B%0A%7D%0Ah1%7B%0Acolor%3A%23ccc%3B%0Afont%2Dsize%3A35px%3B%0Amargin%3A17px%200%200%200%3B%0Apadding%3A0px%3B%0Atext%2Dalign%3Acenter%3B%0A%7D%0A%2Eh1divider%7B%0Acolor%3A%23333%3B%0A%7D%0A%2Eh1first%7B%0Acolor%3A%234684C1%3B%0A%7D%0A%23content%5Fcontainer%20%7B%0Awidth%3A%20700px%3B%0Amargin%3A0%20auto%3B%0Amargin%2Dtop%3A25px%3B%0Amargin%2Dbottom%3A25px%3B%0A%7D%0A%23content%7B%0Aborder%3A1px%20solid%20%23333%3B%0A%7D%0Atr%2Eodd%7B%0Abackground%3A%23333333%3B%0A%7D%0A%23content%20img%7B%0Amargin%3A10px%3B%0Aborder%3A3px%20solid%20%23333%3B%0A%7D%0A%2Etab%5Fl%2C%2Etab%5Fr%7B%0Apadding%3A0%205px%200%205px%3B%0Amargin%3A0px%3B%0Afont%2Dsize%3A12px%3B%0Acolor%3A%234684C1%3B%0Aborder%3A1px%20solid%20%23333%3B%0A%7D%0A%2Etab%5Fl%7B%0Afloat%3Aleft%3B%0Aborder%2Dtop%3A0px%3B%0Aborder%2Dleft%3A0px%3B%0A%7D%0A%2Etab%5Fr%7B%0Afloat%3Aright%3B%0Aborder%2Dtop%3A0px%3B%0Aborder%2Dright%3A0px%3B%0A%7D%0A%23footer%7B%0Aheight%3A25px%3B%0Aclear%3Aboth%3B%0Afont%2Dsize%3A10px%3B%0Atext%2Dalign%3Aright%3B%0Apadding%2Dright%3A25px%3B%0Acolor%3A%23ccc%3B%0A%7D%0A%2Emountain%7B%0Afloat%3Aleft%3B%0A%7D%0Adiv%2Ethm%20%7B%0Amax%2Dwidth%3A%2027em%3B%0Amargin%2Dleft%3A%202em%3B%20padding%3A%20%2E5em%3B%0Aborder%3A%20thin%20solid%3B%0Aborder%2Dbottom%3A%20%2E15em%20solid%3B%0Aborder%2Dradius%3A%201em%3B%0Abox%2Dshadow%3A%200px%205px%2010px%201px%20hsl%280%2C%200%25%2C%2060%25%29%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">El sistema de tipos de Haskell/GHC y sus extensiones</h1>
+</div>
+<p><img src="data:image/png;base64,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" style="vertical-align:middle" /> Este curso es parte de la <a href="http://dc.exa.unrc.edu.ar/rio/es/cursos2018">25º Escuela de verano de ciencias informáticas.</a> <a href="https://cs.famaf.unc.edu.ar/~hoffmann">Guillaume Hoffmann</a></p>
+<p>Los horarios son: <a href="http://dc.exa.unrc.edu.ar/rio/es/cronograma2018">de lunes a viernes 8hs-10hs30</a> + examen el sábado</p>
+<h1 id="apuntes-de-las-materia">Apuntes de las materia</h1>
+<p>Para hacer los ejercicios practicos es necesario tener GHC 8 (o más).</p>
+<ul>
+<li>Lunes: tipos, clases de tipos, Monoid
+<ul>
+<li><a href="parte1.html">Teórico</a></li>
+<li><a href="practico01.html">Práctico</a></li>
+</ul></li>
+<li>Martes: IO, Functor, Monad, notación do
+<ul>
+<li><a href="parte2.html">Teórico</a></li>
+<li><a href="practico02.html">Práctico</a></li>
+</ul></li>
+<li>Miércoles: MultiParamTypeClasses, FunctionalDependencies
+<ul>
+<li><a href="parte3.html">Teórico</a></li>
+<li><a href="practico03.html">Práctico</a></li>
+</ul></li>
+<li>Jueves: TypeFamilies, GADTs
+<ul>
+<li><a href="parte4.html">Teórico</a></li>
+</ul></li>
+<li>Viernes: DataKinds
+<ul>
+<li><a href="parte5.html">Teórico</a></li>
+<li><a href="practico05.html">Práctico</a></li>
+</ul></li>
+</ul>
+<h1 id="contenidos-adicionales">Contenidos adicionales</h1>
+<h2 id="para-empezar-con-haskell">Para empezar con Haskell</h2>
+<ul>
+<li><a href="http://www.cs.us.es/~jalonso/cursos/i1m-17/temas.php">Programación funcional (Universidad de Sevilla)</a></li>
+<li><a href="https://mumuki.io/chapters/82-programacion-funcional">Mumuki, serie de ejercicios en Haskell</a></li>
+</ul>
+<h2 id="referencias-al-día-sobre-haskell">Referencias al día sobre Haskell</h2>
+<p>Son artículos interesantes o referencias escritos hace poco (final del 2017 o principio del 2018).</p>
+<ul>
+<li><a href="http://www.stephendiehl.com/posts/haskell_2018.html">Reflecting on Haskell in 2017 (Stephen Diehl)</a></li>
+<li><a href="https://lexi-lambda.github.io/blog/2018/02/10/an-opinionated-guide-to-haskell-in-2018/">An opiniated guide to Haskell in 2018</a></li>
+<li><a href="http://dev.stephendiehl.com/hask/">What I wish I knew when learning Haskell (2017)</a></li>
+<li><a href="http://books.goalkicker.com/HaskellBook/">Haskell Notes for Professionals (PDF, compilación de posts en StackOverflow)</a></li>
+</ul>
+<h2 id="artículos">Artículos</h2>
+<ul>
+<li><a href="https://www.microsoft.com/en-us/research/wp-content/uploads/1997/01/multi.pdf">Type classes: an exploration of the design space (1997)</a></li>
+<li><a href="https://userpages.uni-koblenz.de/~laemmel/TheEagle/dl/Hallgren01.pdf">Fun with functional dependencies (2000)</a></li>
+<li><a href="http://www.iro.umontreal.ca/~monnier/2035/history.pdf">A history of Haskell: being lazy with class (2007)</a></li>
+<li><a href="http://dreixel.net/research/pdf/ghp.pdf">Giving Haskell a Promotion (2012)</a></li>
+<li><a href="http://www.cis.upenn.edu/~sweirich/papers/eisenberg-thesis.pdf">Dependent Types in Haskell: Theory and Practice (2016)</a> (cap. 2)</li>
+</ul>
+<h2 id="software-libre-en-haskell-necesitando-ayuda">Software libre en Haskell necesitando ayuda</h2>
+<ul>
+<li><a href="http://www.darcs.net">Darcs</a></li>
+<li><a href="http://www.pandoc.org">Pandoc</a></li>
+<li><a href="https://hackage.haskell.org/package/patat">Patat (Presentations Atop The ANSI Terminal)</a></li>
+<li>Ver también el <a href="https://wiki.haskell.org/Haskell_Communities_and_Activities_Report">Haskell Community and Activities Report</a></li>
+</ul>
+</body>
+</html>

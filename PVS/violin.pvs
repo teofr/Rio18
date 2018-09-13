@@ -1,0 +1,39 @@
+Violin: THEORY
+BEGIN
+  Nene: TYPE = { n:nat | n > 1 }
+  
+  Forro: DATATYPE
+  BEGIN
+    forro(adentro: nat, afuera: nat): forro?
+  END Forro
+
+  invertir(f: Forro): Forro =
+    CASES f OF
+      forro(i, out): forro(out, i)
+    ENDCASES
+
+  contagiar(f: Forro, n: Nene): Forro = forro(adentro(f), n)
+  
+  Pija: DATATYPE
+  BEGIN
+    vacia: vacia?
+    primero(p: { p:Pija | vacia?(p) }, f: { f: Forro | adentro(f) <= 1 }): primero?
+    apilar(p: { p:Pija | NOT vacia?(p) }, f: Forro): apilado? 
+  END Pija
+
+  desapilar(p: { p:Pija | NOT vacia?(p) }): [Forro, Pija] =
+    CASES p OF
+      primero(p, f): (f, p),
+      apilar(p, f): (f, p)
+    ENDCASES
+
+  doble_inversion: LEMMA
+    FORALL(f: Forro):
+      f = invertir(invertir(f))
+
+  violin(p:{ p:Pija | NOT vacia?(p) } , n:Nene): Pija =
+    CASES desapilar(p) OF
+      (f, p_) = apilar(p_, contagiar(f, n)) 
+    ENDCASES
+  
+END Violin

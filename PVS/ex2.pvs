@@ -1,0 +1,21 @@
+ex2: THEORY
+BEGIN
+
+  % Prove the following lemmas
+  % To prove: with the cursor on the formula to prove, M-x pr (or C-c C-p).
+
+  trivial1: LEMMA 2 + 2 = 4
+
+  trivial2: LEMMA 2 + (2 + 2) = 6
+
+  inc(x:nat): nat = x + 1
+
+  trivial3: LEMMA FORALL(x: nat): inc(x) > x
+
+  x,y: VAR nat
+
+  trivial4: LEMMA inc(x) + y = x + inc(y)
+
+  % Once finished, send ex2.pvs and ex2.prf to mariano.moscato@nianet.org
+  
+END ex2

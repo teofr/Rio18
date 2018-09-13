@@ -1,0 +1,493 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Guillaume Hoffmann" />
+  <title>El sistema de tipos de Haskell | 2/5</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Amax%2Dwidth%3A%2040em%3B%0Amargin%3A%20auto%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Atable%20%7B%0Aborder%3A%201px%20solid%3B%0Aborder%2Dspacing%3A%205px%200%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">El sistema de tipos de Haskell | 2/5</h1>
+<h2 class="author">Guillaume Hoffmann</h2>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="parte2.html#día-2">Día 2</a><ul>
+<li><a href="parte2.html#retomando-el-asunto-monoid">Retomando el asunto: <code>Monoid</code></a></li>
+<li><a href="parte2.html#instancias-multiples-a-propósito">Instancias multiples, a propósito</a></li>
+<li><a href="parte2.html#newtype">newtype</a></li>
+<li><a href="parte2.html#overlapping-instances-instancias-solapadas">Overlapping Instances (Instancias solapadas)</a></li>
+<li><a href="parte2.html#tipos-que-representan-cálculos">Tipos que representan cálculos</a></li>
+<li><a href="parte2.html#el-problema-con-la-pureza">El problema con la pureza</a></li>
+<li><a href="parte2.html#io-soluciona-el-problema-con-la-pureza"><code>IO</code> soluciona el problema con la pureza</a></li>
+<li><a href="parte2.html#section"></a></li>
+<li><a href="parte2.html#section-1"></a></li>
+<li><a href="parte2.html#section-2"></a></li>
+<li><a href="parte2.html#section-3"></a></li>
+<li><a href="parte2.html#no-hay-una-string-dentro-de-un-io-string">No hay una <code>String</code> &quot;dentro de&quot; un <code>IO String</code></a></li>
+<li><a href="parte2.html#qué-significa-io">¿Qué significa <code>IO ()</code>?</a></li>
+<li><a href="parte2.html#otras-funciones-de-tipo-io-algo">Otras funciones de tipo <code>IO algo</code></a></li>
+<li><a href="parte2.html#functor"><code>Functor</code></a></li>
+<li><a href="parte2.html#functor-version-completa">Functor, version completa</a></li>
+<li><a href="parte2.html#el-operador">El operador <code>&lt;$&gt;</code></a></li>
+<li><a href="parte2.html#la-clase-monad-motivación">La clase <code>Monad</code>: motivación</a></li>
+<li><a href="parte2.html#monad-nos-salva">¡<code>Monad</code> nos salva!</a></li>
+<li><a href="parte2.html#maybe-necesita-ayuda"><code>Maybe</code> necesita ayuda</a></li>
+<li><a href="parte2.html#reduciendo-la-redundancia-del-anidamiento">Reduciendo la redundancia del anidamiento</a></li>
+<li><a href="parte2.html#ahora-sí-monad">Ahora sí, <code>Monad</code></a></li>
+<li><a href="parte2.html#section-4"></a></li>
+<li><a href="parte2.html#una-función-más-simple-de-monad">Una función más simple de <code>Monad</code></a></li>
+<li><a href="parte2.html#leyes-de-monad">Leyes de <code>Monad</code></a></li>
+<li><a href="parte2.html#instancia-de-monad-para-maybe">Instancia de <code>Monad</code> para <code>Maybe</code>:</a></li>
+<li><a href="parte2.html#volviendo-a-ziptree">Volviendo a <code>zipTree</code></a></li>
+<li><a href="parte2.html#notación-do">Notación <code>do</code></a></li>
+<li><a href="parte2.html#ziptree-por-última-vez"><code>zipTree</code> por última vez</a></li>
+<li><a href="parte2.html#la-mónada-de-las-listas">La mónada de las listas</a></li>
+<li><a href="parte2.html#combinadores-de-mónadas">Combinadores de mónadas</a></li>
+<li><a href="parte2.html#más-combinadores">Más combinadores</a></li>
+<li><a href="parte2.html#más-sobre-la-notación-do">Más sobre la notación <code>do</code></a></li>
+<li><a href="parte2.html#uso-de-let-en-do">Uso de <code>let</code> en <code>do</code></a></li>
+<li><a href="parte2.html#observaciones">Observaciones</a></li>
+<li><a href="parte2.html#section-5"></a></li>
+<li><a href="parte2.html#otros-usos-de-monad">Otros usos de <code>Monad</code></a></li>
+<li><a href="parte2.html#una-clase-intermedia-applicative">Una clase intermedia: <code>Applicative</code></a></li>
+</ul></li>
+<li><a href="parte2.html#conclusión">Conclusión</a><ul>
+<li><a href="parte2.html#ventajas-de-las-clases-de-tipos">Ventajas de las clases de tipos</a></li>
+<li><a href="parte2.html#ultimo-consejo">Ultimo consejo</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="día-2">Día 2</h1>
+<h2 id="retomando-el-asunto-monoid">Retomando el asunto: <code>Monoid</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Monoid</span> a <span class="kw">where</span>
+<span class="ot">  mempty ::</span> a
+<span class="ot">  mappend ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+
+<span class="kw">instance</span> <span class="dt">Monoid</span> [a] <span class="kw">where</span>
+  mempty <span class="fu">=</span> []
+  mappend <span class="fu">=</span> (<span class="fu">++</span>)
+
+<span class="co">-- esta instancia no es estandar</span>
+<span class="kw">instance</span> <span class="dt">Monoid</span> <span class="dt">Bool</span> <span class="kw">where</span>
+  mempty <span class="fu">=</span> <span class="dt">False</span>
+  mappend <span class="fu">=</span> (<span class="fu">||</span>) </code></pre></div>
+<p><code>&lt;&gt;</code> es un sinónimo de <code>mappend</code>, definido en <code>Data.Monoid</code>.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">&gt;</span> <span class="fu">:</span>m <span class="fu">+</span><span class="dt">Data.Monoid</span>
+<span class="fu">&gt;</span> <span class="st">&quot;Hey&quot;</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot; &quot;</span> <span class="fu">&lt;&gt;</span> <span class="st">&quot;you&quot;</span>
+<span class="fu">&gt;</span> <span class="dt">False</span> <span class="fu">&lt;&gt;</span> <span class="dt">True</span> <span class="fu">&lt;&gt;</span> <span class="dt">False</span></code></pre></div>
+<h2 id="instancias-multiples-a-propósito">Instancias multiples, a propósito</h2>
+<p>¿Que pasa si queremos a proposito definir mas de una instancia de algun tipo <code>T</code> en la clase <code>C</code>? Por ejemplo:</p>
+<ul>
+<li><code>Monoid Int</code> con la operación suma y neutro 0</li>
+<li><code>Monoid Int</code> con la operación producto y neutro 1</li>
+</ul>
+<h2 id="newtype">newtype</h2>
+<p>Básicamente <code>data</code> con un solo constructor.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">newtype</span> <span class="dt">Suma</span> <span class="fu">=</span> <span class="dt">Suma</span> <span class="dt">Int</span>
+<span class="kw">newtype</span> <span class="dt">Prod</span> <span class="fu">=</span> <span class="dt">Prod</span> <span class="dt">Int</span></code></pre></div>
+<p>Durante la compilación, se chequea el tipo, pero durante la ejecución, <code>Suma</code> y <code>Prod</code> son iguales a <code>Int</code>, sin &quot;overhead&quot; como usualmente hay cuando se crea un tipo algebráico.</p>
+<p>Ejercicio: resolver el ejercicio del práctico sobre los monoides.</p>
+<h2 id="overlapping-instances-instancias-solapadas">Overlapping Instances (Instancias solapadas)</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Show</span> a <span class="ot">=&gt;</span> <span class="dt">Show</span> (<span class="dt">Maybe</span> a)
+<span class="kw">instance</span> <span class="dt">Show</span> (<span class="dt">Maybe</span> <span class="dt">Int</span>)</code></pre></div>
+<p>Está permitido mientras siempre hay una instancia más específica en cualquier caso.</p>
+<p>Para permitir instancias solapadas, escribir justo después <code>instance</code>:</p>
+<ul>
+<li><code>{-# OVERLAPPING #-}</code> en la instancia más específica</li>
+<li><code>{-# OVERLAPPABLE #-}</code> en la instancia más general</li>
+</ul>
+<p>Uno de los dos es suficiente.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">C</span> a <span class="kw">where</span>
+<span class="ot"> f ::</span> a <span class="ot">-&gt;</span> <span class="dt">Int</span>
+
+<span class="kw">instance</span> <span class="dt">C</span> a <span class="ot">=&gt;</span> <span class="dt">C</span> [a] <span class="kw">where</span>
+  <span class="fu">...</span>
+
+<span class="kw">instance</span> <span class="ot">{-# OVERLAPPING  #-}</span> <span class="dt">C</span> [<span class="dt">Int</span>] <span class="kw">where</span>
+  <span class="fu">...</span></code></pre></div>
+<p>Ejercicio: resolver el ejercicio del práctico sobre las instancias solapadas.</p>
+<h2 id="tipos-que-representan-cálculos">Tipos que representan cálculos</h2>
+<ul>
+<li><p><code>a</code> : cálculo que devuelve un <code>a</code></p></li>
+<li><p><code>data Maybe a = Nothing | Just a</code> : cálculo que puede fallar, y en caso de éxito devuelve un <code>a</code></p></li>
+</ul>
+<div class="incremental">
+<ul>
+<li><code>data Either a b = Left a | Right b</code>: cálculo que puede fallar, en cual caso devuelve un <code>a</code> (a menudo un mensaje de error o un valor que indica una excepción), sino devuelve un <code>b</code></li>
+</ul>
+</div>
+<div class="incremental">
+<ul>
+<li><code>[a]</code> (lista): cálculo que devuelve un valor <code>a</code> dentro de cero, uno o varios valores <code>a</code> posibles (por razones de aleatoriedad, por ejemplo)</li>
+</ul>
+</div>
+<div class="incremental">
+<ul>
+<li><code>IO a</code>: calculo que involucra efectos de entrada y salida (leer archivos, usar la red, imprimir en pantalla, etc.), y devuelve un valor <code>a</code></li>
+</ul>
+</div>
+<div class="incremental">
+<p><code>IO</code> no tiene una implementación con constructores, es más bien un hack del compilador. ¡Pero como tipo se integra perfectamente al resto!</p>
+</div>
+<h2 id="el-problema-con-la-pureza">El problema con la pureza</h2>
+<p>Haskell es un lenguaje de programación puro, es decir:</p>
+<ul>
+<li>las funciones no pueden tener efectos externos. Por ejemplo, una función no puede imprimir nada en la pantalla. Las funciones solo pueden calcular su salida.</li>
+<li>las funciones no pueden depender de cosas externas. Por ejemplo, no pueden leer el teclado, o el sistema de archivos, o la red. Las funciones pueden solo depender de sus entradas. Dicho de otra forma, las funciones deben dar la misma salida para la misma entrada cada vez.</li>
+</ul>
+<p>Pero… ¡a veces queremos hacer cosas así! Si la única cosa que pudieramos hacer con Haskell es escribir funciones para evaluarlas dentro de GHCi, sería interesante en teoría pero inútil en práctica.</p>
+<p>De hecho, es posible hacer ese tipo de cosas en Haskell, pero es muy distinto a lo que se hace en otros lenguajes de programación.</p>
+<h2 id="io-soluciona-el-problema-con-la-pureza"><code>IO</code> soluciona el problema con la pureza</h2>
+<p>La solución a esa enigma es un tipo especial llamado IO. Los valores de tipo <code>IO a</code> son descripciones de cálculos con efectos, que, si los llevamos a cabo, harían (posiblemente) algunas operaciones con efectos de entrada y salida y (al final) producirían un valor de tipo <code>a</code>.</p>
+<p>Hay un nivel de indirección acá que es esencial entender. Un valor de tipo <code>IO a</code>, en sí, es una cosa inerta, totalmente pura y sin efecto. Es solo la descripción de un cálculo con efecto. Una manera de pensarlo es como si fuera un programa imperativo.</p>
+<h2 id="section"></h2>
+<p>Para ilustrar eso, supongamos que tenemos:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">t ::</span> <span class="dt">Torta</span></code></pre></div>
+<p>¿Qué tenemos? Una torta deliciosa, por supuesto. Así de simple.</p>
+<p>En comparación, supongamos que tenemos:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">r ::</span> <span class="dt">Receta</span> <span class="dt">Torta</span></code></pre></div>
+<p>¿Qué tenemos? ¿Una torta? No, tenemos unas instrucciones para hacer una torta, solo un papel con algunas cosas escritas encima.</p>
+<p>No solamente no tenemos una torta, sino que estamos teniendo una receta que no tiene ningun efecto sobre nada. Tener la receta a mano no hace que nuestro horno se va a prender o que la harina se va a repartir sobre la mesada, o algo por el estilo. Para efectivamente producir una torta, la receta debe ser seguida.</p>
+<h2 id="section-1"></h2>
+<p>Del mismo modo, un valor de tipo <code>IO a</code> es solo una &quot;receta&quot; para producir algun valor de tipo <code>a</code> (y posiblemente tener algun efecto de paso). Como cualquier otro valor, puede ser pasado como argumento, devuelto como salida de una función, guardado en una estructura de datos, o (como vamos a ver pronto) combinado con otros valores IO en recetas más complejas.</p>
+<p>Entonces, ¿cómo los valores de tipo <code>IO a</code> terminan siendo ejecutados? De una sola forma: el compilador Haskell busca un valor especial</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">main ::</span> <span class="dt">IO</span> ()</code></pre></div>
+<p>que va a ser entregado al runtime y ejecutado. ¡Ya está! Podemos pensar en el runtime de Haskell como si fuera el chef que es el único con derecho a cocinar.</p>
+<p>Si queremos que nuestra receta sea seguida entonces debemos hacer que sea parte de la receta grande (<code>main</code>) que es dada al chef. Por supuesto, <code>main</code> puede ser muy complicada, y típicamente va a ser compuesta de numerosos cálculos IO más pequeños.</p>
+<h2 id="section-2"></h2>
+<p>Así que escribamos nuestro primer verdadero programa Haskell ejecutable. Podemos usar la función:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">putStrLn<span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()</code></pre></div>
+<p>que, dada una <code>String</code>, devuelve un cálculo IO que (cuando es ejecutado) imprime esa String en la pantalla. Entonces podemos poner lo siguiente en un archivo llamado <code>Hello.hs</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">main <span class="fu">=</span> putStrLn <span class="st">&quot;Hello, Haskell!&quot;</span></code></pre></div>
+<p>Luego, tipear <code>runhaskell Hello.hs</code> en línea de comando resulta en nuestro mensaje siendo impreso en la pantalla. También podemos usar <code>ghc Hello.hs</code> para producir un ejecutable llamado <code>Hello</code> (<code>Hello.exe</code> en Windows).</p>
+<h2 id="section-3"></h2>
+<p>GHC busca un módulo llamado <code>Main</code> para encontrar la acción principal. Si no ponemos cabezera en un archivo Haskell, el nombre por defecto será <code>Main</code>, entonces eso funciona, por más que el archivo no se llama <code>Main.hs</code>. Si queremos usar un nombre de módulo distinto, tenemos que usar una opción en línea de comando para ghc o runhaskell. Por ejemplo si tenemos <code>Something.hs</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">module</span> <span class="dt">Something</span> <span class="kw">where</span>
+<span class="ot">main ::</span> <span class="dt">IO</span> ()
+main <span class="fu">=</span> putStrLn <span class="st">&quot;Hi out there!&quot;</span></code></pre></div>
+<p>Lo podemos compilar con <code>ghc -main-is Something Something.hs</code>.</p>
+<h2 id="no-hay-una-string-dentro-de-un-io-string">No hay una <code>String</code> &quot;dentro de&quot; un <code>IO String</code></h2>
+<p>Muchos usuarios nuevos de Haskell terminan preguntando algo como &quot;Tengo un <code>IO String</code>, ¿cómo lo convierto en una <code>String</code>?&quot; o &quot;¿Cómo consigo la <code>String</code> dentro del <code>IO String</code>?&quot;.</p>
+<p>Dadas las explicaciones anteriores, debería estar claro que estas preguntas no tienen sentido: un valor de tipo <code>IO String</code> es la descripción de algun cálculo, una receta, para generar una <code>String</code>. No hay <code>String</code> &quot;dentro de&quot; un <code>IO String</code>, no más que hya una torta &quot;dentro de&quot; una receta. Para producor una <code>String</code> (o una deliciosa torta), hace falta ejecutar el cálculo (o la receta). Y la única manera de hacerlo es darlo (posiblemente como parte de un valor IO más grande) al runtime de Haskell, a través de <code>main</code>.</p>
+<h2 id="qué-significa-io">¿Qué significa <code>IO ()</code>?</h2>
+<p>El tipo <code>()</code> se dice &quot;unit&quot; y tiene un solo valor, <code>()</code>. Es como si fuera definido con:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> () <span class="fu">=</span> ()</code></pre></div>
+<p>Aunque no es sintaxis Haskell válida. <code>()</code> es un tipo bastante tonto a primera vista: no transmite ninguna información, porque tiene solo un constructor sin argumento.</p>
+<p>Pero es exactamente lo que necesitamos en ciertas acciones IO que no producen ningun valor al final. Haskell insiste que debe producir algo, entonces decimos que produce <code>()</code>. (Un poco como <code>void</code> en C/C++ o Java.)</p>
+<h2 id="otras-funciones-de-tipo-io-algo">Otras funciones de tipo <code>IO algo</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">putStrLn<span class="ot"> ::</span> <span class="dt">String</span> <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+getLine<span class="ot">  ::</span> <span class="dt">IO</span> <span class="dt">String</span></code></pre></div>
+<p><code>putStrLn</code> ejecuta una acción IO pero no devuelve nada.</p>
+<p><code>getLine</code> tiene como tipo <code>IO String</code>. Eso significa que <code>getLine</code> es una acción que produce una <code>String</code>.</p>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">print<span class="ot"> ::</span> <span class="dt">Show</span> a <span class="ot">=&gt;</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+readFile<span class="ot"> ::</span> FilePath <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">String</span></code></pre></div>
+<p>Tenemos <code>type FilePath = String</code>.</p>
+<p>Esta función lee el contenido entero de un archivo y lo guarda dentro de una <code>String</code>.</p>
+<p>Hay muchas funciones que podemos usar para hacer entrada y salida. Fijate en los módulos cuyo nombre empieza con <code>System.</code>, en particular <code>System.IO</code>.</p>
+</div>
+<h2 id="functor"><code>Functor</code></h2>
+<p>Consideremos el patrón de &quot;aplicar una función pura bajo un constructor de tipo&quot;:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">mapList ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">List</span> a <span class="ot">-&gt;</span> <span class="dt">List</span> b
+<span class="ot">mapMaybe ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b
+<span class="ot">mapIO ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">IO</span> a <span class="ot">-&gt;</span> <span class="dt">IO</span> b</code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Functor</span> f <span class="kw">where</span>
+<span class="ot">  fmap ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b</code></pre></div>
+</div>
+<h2 id="functor-version-completa">Functor, version completa</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Functor</span> (<span class="ot">f ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span>) <span class="kw">where</span>
+<span class="ot">  fmap ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b
+<span class="ot">  (&lt;$) ::</span> a <span class="ot">-&gt;</span> f b <span class="ot">-&gt;</span> f a
+  <span class="ot">{-# MINIMAL fmap #-}</span></code></pre></div>
+<div class="incremental">
+<p>Leyes:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">fmap id  <span class="fu">==</span>  id
+fmap (f <span class="fu">.</span> g)  <span class="fu">==</span>  fmap f <span class="fu">.</span> fmap g</code></pre></div>
+<p>Implicación: si <code>f</code> representa algun efecto (por ejemplo <code>IO</code>), entonces aplicar una función via <code>fmap</code> no modifica ese efecto.</p>
+</div>
+<h2 id="el-operador">El operador <code>&lt;$&gt;</code></h2>
+<p>Es un sinónimo infijo de <code>fmap</code> (de la clase <code>Functor</code>)</p>
+<p>Visualmente hace el paralelo entre:</p>
+<ul>
+<li><code>f x</code> (aplicar <code>f</code> al valor puro <code>x</code>), y</li>
+<li><code>f &lt;$&gt; x</code> (aplicar <code>f</code> al resultado del cálculo <code>x</code>).</li>
+</ul>
+<p>Ejemplo:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">lineasDe ::</span> FilePath <span class="ot">-&gt;</span> <span class="dt">IO</span> [<span class="dt">String</span>]
+lineasDe file <span class="fu">=</span> lines <span class="fu">&lt;$&gt;</span> readFile file</code></pre></div>
+<h2 id="la-clase-monad-motivación">La clase <code>Monad</code>: motivación</h2>
+<p>Pensando en <code>IO</code>, ya conocemos una forma un poco limitada de secuenciar efectos <code>IO</code>, es el uso de <code>&lt;&gt;</code> de la clase <code>Monoid</code>:</p>
+<p>si tenemos una secuencia de funciones <code>IO a</code> donde <code>a</code> tambien pertenece a la clase <code>Monoid</code>, se pueden ejecutar esas funciones en secuencia y luego combinar los resultados (con la implementación <code>&lt;&gt;</code> para <code>a</code>).</p>
+<p>Pero mucho más que eso no podemos hacer. No podemos:</p>
+<ul>
+<li>ejecutar secuencias de funciones <code>IO</code> que devuelven tipos distintos</li>
+<li>usar el resultado de una primera función IO para determinar qué hacer en la segunda (ej: leer contenido de un archivo, extraer de ahi el nombre de un segundo archivo para abrir)</li>
+<li>bifurcar en esa secuencia en función de algun valor devuelto</li>
+</ul>
+<h2 id="monad-nos-salva">¡<code>Monad</code> nos salva!</h2>
+<p>La clase <code>Monad</code> permite formas más poderosas de poner efectos en secuencia (que sean Maybe, Either, IO, etc.).</p>
+<p>Empecemos con <code>Maybe</code>, que representa cálculos que pueden fallar.</p>
+<div class="incremental">
+<p>Queremos escribir una función que &quot;zipea&quot; juntos dos árboles binarios aplicándoles una función a los valores de cada nodo. Sin embargo, la función debe fallar totalmente si los árboles tiene una estructura distinta.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Tree</span> a <span class="fu">=</span> <span class="dt">Node</span> (<span class="dt">Tree</span> a) a (<span class="dt">Tree</span> a)
+            <span class="fu">|</span> <span class="dt">Empty</span></code></pre></div>
+</div>
+<h2 id="maybe-necesita-ayuda"><code>Maybe</code> necesita ayuda</h2>
+<p>Primer intento:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Tree</span> a <span class="fu">=</span> <span class="dt">Node</span> (<span class="dt">Tree</span> a) a (<span class="dt">Tree</span> a)
+            <span class="fu">|</span> <span class="dt">Empty</span>
+
+<span class="ot">zipTree1 ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">Tree</span> a <span class="ot">-&gt;</span> <span class="dt">Tree</span> b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Tree</span> c)
+zipTree1 _ (<span class="dt">Node</span> _ _ _) <span class="dt">Empty</span> <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree1 _ <span class="dt">Empty</span> (<span class="dt">Node</span> _ _ _) <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree1 _ <span class="dt">Empty</span> <span class="dt">Empty</span>        <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Empty</span>
+zipTree1 f (<span class="dt">Node</span> l1 x r1) (<span class="dt">Node</span> l2 y r2) <span class="fu">=</span>
+    <span class="kw">case</span> zipTree1 f l1 l2 <span class="kw">of</span>
+      <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Nothing</span>
+      <span class="dt">Just</span> l  <span class="ot">-&gt;</span> <span class="kw">case</span> zipTree1 f r1 r2 <span class="kw">of</span>
+                   <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Nothing</span>
+                   <span class="dt">Just</span> r  <span class="ot">-&gt;</span> <span class="dt">Just</span> <span class="fu">$</span> <span class="dt">Node</span> l (f x y) r</code></pre></div>
+<p>Este código anda, pero es poco elegante. Hemos anidado dos <code>case</code> con estructuras muy similares.</p>
+<h2 id="reduciendo-la-redundancia-del-anidamiento">Reduciendo la redundancia del anidamiento</h2>
+<p>Queremos una función auxiliar como la siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">bindMaybe ::</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b
+bindMaybe mx f <span class="fu">=</span> <span class="kw">case</span> mx <span class="kw">of</span>
+                   <span class="dt">Nothing</span> <span class="ot">-&gt;</span> <span class="dt">Nothing</span>
+                   <span class="dt">Just</span> x  <span class="ot">-&gt;</span> f x</code></pre></div>
+<p>Usando esta función, podemos tener un código más elegante:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">zipTree2 ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">Tree</span> a <span class="ot">-&gt;</span> <span class="dt">Tree</span> b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Tree</span> c)
+zipTree2 _ (<span class="dt">Node</span> _ _ _) <span class="dt">Empty</span> <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree2 _ <span class="dt">Empty</span> (<span class="dt">Node</span> _ _ _) <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree2 _ <span class="dt">Empty</span> <span class="dt">Empty</span>        <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Empty</span>
+zipTree2 f (<span class="dt">Node</span> l1 x r1) (<span class="dt">Node</span> l2 y r2) <span class="fu">=</span>
+    bindMaybe (zipTree2 f l1 l2) <span class="fu">$</span> \l <span class="ot">-&gt;</span>
+        bindMaybe (zipTree2 f r1 r2) <span class="fu">$</span> \r <span class="ot">-&gt;</span>
+            <span class="dt">Just</span> (<span class="dt">Node</span> l (f x y) r)</code></pre></div>
+<h2 id="ahora-sí-monad">Ahora sí, <code>Monad</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Monad</span> m <span class="kw">where</span>
+<span class="ot">  return ::</span> a <span class="ot">-&gt;</span> m a
+
+   <span class="co">-- pronuncado &quot;bind&quot;</span>
+<span class="ot">  (&gt;&gt;=) ::</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b</code></pre></div>
+<p><code>return</code> está para &quot;envolver&quot; un valor <code>a</code> en un valor con efectos <code>m a</code> de la forma más trivial posible (vemos las leyes en un ratito).</p>
+<p><code>(&gt;&gt;=)</code> toma dos parámetros. El primero de tipo <code>m a</code>, representa un cálculo que resulta en un valor (o varias, o ninguna) de tipo <code>a</code>, y que puede tener algun &quot;efecto&quot;.</p>
+<p>El segundo parámetro es una función de tipo <code>(a -&gt; m b)</code>. Es decir, una función que va a elegir cuál es el siguiente cómputo en función del resultado del primero. Es precisamente ahí que se ve la idea de la mónada de encapsular cómputos que pueden ser puestos en secuencia.</p>
+<h2 id="section-4"></h2>
+<p>Todo lo que hace <code>(&gt;&gt;=)</code> es poner juntas dos acciones para producir una más grande, que lleva a cabo la primera y luego la segunda, devolviendo el resultado de la segunda.</p>
+<p>El giro importante acá es que nos toca decidir cuál acción ejecutar en segundo en función de la salida de la primera.</p>
+<h2 id="una-función-más-simple-de-monad">Una función más simple de <code>Monad</code></h2>
+<p>La clase <code>Monad</code> provee una función con una implementación por defecto:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(&gt;&gt;)  ::</span> m a <span class="ot">-&gt;</span> m b <span class="ot">-&gt;</span> m b
+m1 <span class="fu">&gt;&gt;</span> m2 <span class="fu">=</span> m1 <span class="fu">&gt;&gt;=</span> \_ <span class="ot">-&gt;</span> m2</code></pre></div>
+<p><code>m1 &gt;&gt; m2</code> simplemente hace <code>m1</code> y luego <code>m2</code>, ignorando el resultado de <code>m1</code>.</p>
+<p>¡Es bastante distinto de <code>m1 &lt;&gt; m2</code>!</p>
+<h2 id="leyes-de-monad">Leyes de <code>Monad</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Monad</span> m <span class="kw">where</span>
+<span class="ot">  return ::</span> a <span class="ot">-&gt;</span> m a
+<span class="ot">  (&gt;&gt;=) ::</span> m a <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> m b) <span class="ot">-&gt;</span> m b</code></pre></div>
+<p>Leyes:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">return a <span class="fu">&gt;&gt;=</span> k  <span class="fu">=</span>  k a
+m <span class="fu">&gt;&gt;=</span> return    <span class="fu">=</span>  m
+m <span class="fu">&gt;&gt;=</span> (\x <span class="ot">-&gt;</span> k x <span class="fu">&gt;&gt;=</span> h)  <span class="fu">=</span>  (m <span class="fu">&gt;&gt;=</span> k) <span class="fu">&gt;&gt;=</span> h <span class="co">-- uf!</span></code></pre></div>
+<h2 id="instancia-de-monad-para-maybe">Instancia de <code>Monad</code> para <code>Maybe</code>:</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monad</span> <span class="dt">Maybe</span> <span class="kw">where</span>
+  return  <span class="fu">=</span> <span class="dt">Just</span>
+  <span class="dt">Nothing</span> <span class="fu">&gt;&gt;=</span> _ <span class="fu">=</span> <span class="dt">Nothing</span>
+  <span class="dt">Just</span> x  <span class="fu">&gt;&gt;=</span> k <span class="fu">=</span> k x</code></pre></div>
+<p>Si el primer parámetro de <code>(&gt;&gt;=)</code> es <code>Nothing</code>, entonces todo el cómputo falla; sino, si es <code>Just x</code>, aplicamos el segundo parámetro a <code>x</code> para decidir qué hacer después.</p>
+<p>De paso, es común usar la letra k para el segundo parámetro de <code>(&gt;&gt;=)</code> porque &quot;k&quot; significa &quot;continuación&quot;.</p>
+<h2 id="volviendo-a-ziptree">Volviendo a <code>zipTree</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">zipTree3 ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">Tree</span> a <span class="ot">-&gt;</span> <span class="dt">Tree</span> b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Tree</span> c)
+zipTree3 _ (<span class="dt">Node</span> _ _ _) <span class="dt">Empty</span> <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree3 _ <span class="dt">Empty</span> (<span class="dt">Node</span> _ _ _) <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree3 _ <span class="dt">Empty</span> <span class="dt">Empty</span>        <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Empty</span>
+zipTree3 f (<span class="dt">Node</span> l1 x r1) (<span class="dt">Node</span> l2 y r2) <span class="fu">=</span>
+    zipTree3 f l1 l2 <span class="fu">&gt;&gt;=</span> \l <span class="ot">-&gt;</span>
+        zipTree3 f r1 r2 <span class="fu">&gt;&gt;=</span> \r <span class="ot">-&gt;</span>
+            return (<span class="dt">Node</span> l (f x y) r)</code></pre></div>
+<div class="incremental">
+<p>Observamos que seguimos teniendo cierto código repetido, el patrón:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">`... &gt;&gt;= \x -&gt; ...`</span></code></pre></div>
+<p>Además, al anidar estas cosas, nos vamos cada vez más para la derecha.</p>
+<p>Por eso GHC provee una notación especial: la <em>notación do</em>.</p>
+</div>
+<h2 id="notación-do">Notación <code>do</code></h2>
+<p>La notación <code>do</code> anda con cualquier tipo que pertenece a la clase <code>Monad</code>.</p>
+<p>Consideramos el bloque <code>do</code> siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">addM ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> m <span class="dt">Int</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span>
+addM mx my <span class="fu">=</span> <span class="kw">do</span>
+  x <span class="ot">&lt;-</span> mx
+  y <span class="ot">&lt;-</span> my
+  return <span class="fu">$</span> x <span class="fu">+</span> y</code></pre></div>
+<p>GHC convierte esto en una version que usa <code>(&gt;&gt;=)</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">addM' ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> m <span class="dt">Int</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span> <span class="ot">-&gt;</span> m <span class="dt">Int</span>
+addM' mx my <span class="fu">=</span> mx <span class="fu">&gt;&gt;=</span> \x <span class="ot">-&gt;</span> my <span class="fu">&gt;&gt;=</span> \y <span class="ot">-&gt;</span> return (x <span class="fu">+</span> y)</code></pre></div>
+<h2 id="ziptree-por-última-vez"><code>zipTree</code> por última vez</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">zipTree ::</span> (a <span class="ot">-&gt;</span> b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> <span class="dt">Tree</span> a <span class="ot">-&gt;</span> <span class="dt">Tree</span> b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> (<span class="dt">Tree</span> c)
+zipTree _ (<span class="dt">Node</span> _ _ _) <span class="dt">Empty</span> <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree _ <span class="dt">Empty</span> (<span class="dt">Node</span> _ _ _) <span class="fu">=</span> <span class="dt">Nothing</span>
+zipTree _ <span class="dt">Empty</span> <span class="dt">Empty</span>        <span class="fu">=</span> <span class="dt">Just</span> <span class="dt">Empty</span>
+zipTree f (<span class="dt">Node</span> l1 x r1) (<span class="dt">Node</span> l2 y r2) <span class="fu">=</span> <span class="kw">do</span>
+    l <span class="ot">&lt;-</span> zipTree f l1 l2
+    r <span class="ot">&lt;-</span> zipTree f r1 r2
+    return <span class="fu">$</span> <span class="dt">Node</span> l (f x y) r</code></pre></div>
+<h2 id="la-mónada-de-las-listas">La mónada de las listas</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Monad</span> [] <span class="kw">where</span>
+  return x <span class="fu">=</span> [x]
+  xs <span class="fu">&gt;&gt;=</span> k <span class="fu">=</span> concatMap k xs</code></pre></div>
+<p>Un ejemplo simple:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">addOneOrTwo ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> [<span class="dt">Int</span>]
+addOneOrTwo x <span class="fu">=</span> [x<span class="fu">+</span><span class="dv">1</span>, x<span class="fu">+</span><span class="dv">2</span>]
+
+ex07 <span class="fu">=</span> [<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>] <span class="fu">&gt;&gt;=</span> addOneOrTwo
+ex08 <span class="fu">=</span> <span class="kw">do</span>
+  num <span class="ot">&lt;-</span> [<span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>]
+  addOneOrTwo num</code></pre></div>
+<p>Podemos pensar en la mónada de las listas como codificando cálculos con distintos resultados posibles. Más arriba, <code>num</code> representa los valores posibles <code>[10, 20, 30]</code> y luego es agregado a 1 o 2. El resultado es una lista de 6 elementos con todos los resultados posibles.</p>
+<p>Haskell tiene una sintaxis llamada listas en comprensión (o listas intensionales), que usan de hecho la implementación de la clase <code>Monad</code> para las listas.</p>
+<h2 id="combinadores-de-mónadas">Combinadores de mónadas</h2>
+<p>Una cosa linda acerca de la clase <code>Monad</code> es que sólo usando <code>return</code> y <code>(&gt;&gt;=)</code> podemos construir muchos combinadores generales para programas con mónadas.</p>
+<p>Primero, <code>sequence</code> toma una lista de valores monádicos y produce un solo valor monádico que colecta los resultados. Lo que significa realmente depende de cada mónada. Por ejemplo, en el caso de <code>Maybe</code>, significa que el cómputo general es exitoso solo si todos los cómputos individuales lo son; en el caso de IO significa que ejecuta todos los cómputos en secuencia.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">sequence<span class="ot"> ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> [m a] <span class="ot">-&gt;</span> m [a]
+sequence [] <span class="fu">=</span> return []
+sequence (ma<span class="fu">:</span>mas) <span class="fu">=</span> <span class="kw">do</span>
+  a  <span class="ot">&lt;-</span> ma
+  as <span class="ot">&lt;-</span> sequence mas
+  return (a<span class="fu">:</span>as)</code></pre></div>
+<h2 id="más-combinadores">Más combinadores</h2>
+<p>Usando <code>sequence</code>, uno puede escribir otros combinadores, como:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">replicateM ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> m a <span class="ot">-&gt;</span> m [a]
+replicateM n m <span class="fu">=</span> sequence (replicate n m)
+
+<span class="ot">void ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> m a <span class="ot">-&gt;</span> m ()
+void ma <span class="fu">=</span> ma <span class="fu">&gt;&gt;</span> return ()
+
+<span class="ot">join ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> m (m a) <span class="ot">-&gt;</span> m a
+join mma <span class="fu">=</span> <span class="kw">do</span>
+  ma <span class="ot">&lt;-</span> mma
+  ma
+
+<span class="ot">when ::</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Bool</span> <span class="ot">-&gt;</span> m () <span class="ot">-&gt;</span> m ()
+when b action <span class="fu">=</span>
+  <span class="kw">if</span> b
+  <span class="kw">then</span> action
+  <span class="kw">else</span> return ()</code></pre></div>
+<h2 id="más-sobre-la-notación-do">Más sobre la notación <code>do</code></h2>
+<p>Ahora esto debería tener sentido:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sillyExchange ::</span> <span class="dt">IO</span> ()
+sillyExchange <span class="fu">=</span> <span class="kw">do</span>
+  putStrLn <span class="st">&quot;Hello, user!&quot;</span>
+  putStrLn <span class="st">&quot;What is your name?&quot;</span>
+  name <span class="ot">&lt;-</span> getLine
+  putStrLn <span class="fu">$</span> <span class="st">&quot;Pleased to meet you, &quot;</span> <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;!&quot;</span></code></pre></div>
+<h2 id="uso-de-let-en-do">Uso de <code>let</code> en <code>do</code></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">jabber ::</span> <span class="dt">IO</span> ()
+jabber <span class="fu">=</span> <span class="kw">do</span>
+  wocky <span class="ot">&lt;-</span> readFile <span class="st">&quot;jabberwocky.txt&quot;</span>
+  <span class="kw">let</span> wockylines <span class="fu">=</span> drop <span class="dv">2</span> (lines wocky)  <span class="co">-- quita el titulo</span>
+  count <span class="ot">&lt;-</span> printFirstLines wockylines
+  putStrLn <span class="fu">$</span> <span class="st">&quot;There are &quot;</span> <span class="fu">++</span> show count <span class="fu">++</span> <span class="st">&quot; stanzas in Jabberwocky.&quot;</span>
+
+<span class="ot">printFirstLines ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> <span class="dt">Int</span>
+printFirstLines ls <span class="fu">=</span> <span class="kw">do</span>
+  <span class="kw">let</span> first_lines <span class="fu">=</span> extractFirstLines ls
+  putStr (unlines first_lines)
+  return <span class="fu">$</span> length first_lines
+
+<span class="ot">extractFirstLines ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> [<span class="dt">String</span>]
+extractFirstLines []         <span class="fu">=</span> []
+extractFirstLines [_]        <span class="fu">=</span> []
+extractFirstLines (<span class="st">&quot;&quot;</span> <span class="fu">:</span> first <span class="fu">:</span> rest)
+  <span class="fu">=</span> first <span class="fu">:</span> extractFirstLines rest
+extractFirstLines (_ <span class="fu">:</span> rest) <span class="fu">=</span> extractFirstLines rest</code></pre></div>
+<h2 id="observaciones">Observaciones</h2>
+<ol style="list-style-type: decimal">
+<li><p>Sentencias <code>let</code> dentro de bloques <em>do</em>. La sentencia <code>let</code> en un bloque <em>do</em> permite crear un nombre nuevo atado a un valor puro. Observen la falta de <code>in</code>. Acuérdense que cuando decimos <code>let x = y</code>, <code>x</code> e <code>y</code> tienen el mismo tipo. Cuando decimos <code>x &lt;- y</code>, <code>y</code> tiene un tipo como <code>IO a</code>, y entonces <code>x</code> tiene como tipo <code>a</code>.</p></li>
+<li><p><code>return :: a -&gt; IO a</code>. Si necesitamos convertir un valor puro en una acción IO, usamos <code>return</code>. <code>return</code> es una función común y corriente en Haskell. ¡No es lo mismo que <code>return</code> en C/C++ o Java! Dentro de una acción IO, <code>let x = y</code> es lo mismo que <code>x &lt;- return y</code>, pero lo anterior es mucho mejor: hace que la pureza de <code>y</code> sea más obvia.</p></li>
+</ol>
+<p>Otra forma de verlo es que que encontramos a menudo <code>return</code> como última línea de un bloque <code>do</code> porque cada línea debe ser del tipo <code>IO</code>.</p>
+<h2 id="section-5"></h2>
+<p>Ojo, lo siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">leerReadme <span class="fu">=</span> <span class="kw">do</span> c <span class="ot">&lt;-</span> readFile <span class="st">&quot;README.md&quot;</span>
+                return c</code></pre></div>
+<p>Es equivalente a (y peor que):</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">leerReadme <span class="fu">=</span> readFile <span class="st">&quot;README.md&quot;</span></code></pre></div>
+<h2 id="otros-usos-de-monad">Otros usos de <code>Monad</code></h2>
+<ul>
+<li>parsers</li>
+<li>generadores de numeros aleatorios</li>
+<li>cómputos que acceden a un estado mutable</li>
+<li>etc.</li>
+</ul>
+<h2 id="una-clase-intermedia-applicative">Una clase intermedia: <code>Applicative</code></h2>
+<p><code>Applicative</code> es una clase que está &quot;entre&quot; <code>Functor</code> y <code>Monad</code>.</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> (<span class="dt">Functor</span> f) <span class="ot">=&gt;</span> <span class="dt">Applicative</span> f <span class="kw">where</span>  
+<span class="ot">  pure ::</span> a <span class="ot">-&gt;</span> f a  
+<span class="ot">  (&lt;*&gt;) ::</span> f (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> f a <span class="ot">-&gt;</span> f b  </code></pre></div>
+<ul>
+<li><code>pure</code> es exactamente el <code>return</code> de <code>Monad</code>.</li>
+<li><code>&lt;*&gt;</code> generaliza <code>fmap</code> pero no es tan poderoso cono <code>&gt;&gt;=</code>.</li>
+</ul>
+<p>A veces la potencia de <code>Monad</code> es demasiado, y <code>Applicative</code> basta.</p>
+<p>Ver <a href="https://hackage.haskell.org/package/base-4.10.1.0/docs/Control-Applicative.html" class="uri">https://hackage.haskell.org/package/base-4.10.1.0/docs/Control-Applicative.html</a></p>
+<h1 id="conclusión">Conclusión</h1>
+<h2 id="ventajas-de-las-clases-de-tipos">Ventajas de las clases de tipos</h2>
+<ul>
+<li>Sobrecarga</li>
+<li>Resolución de instancias</li>
+<li>Leyes</li>
+<li>Algoritmos genéricos</li>
+<li>Coherencia: una sola instancia por par (clase,tipo)</li>
+</ul>
+<h2 id="ultimo-consejo">Ultimo consejo</h2>
+<p>Tener a mano:</p>
+<ul>
+<li>Typeclasseopedia: <a href="https://wiki.haskell.org/Typeclassopedia" class="uri">https://wiki.haskell.org/Typeclassopedia</a></li>
+<li>GHC User Guide: <a href="https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/" class="uri">https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/</a></li>
+<li><a href="http://dev.stephendiehl.com/hask/#eightfold-path-to-monad-satori" class="uri">http://dev.stephendiehl.com/hask/#eightfold-path-to-monad-satori</a></li>
+</ul>
+</body>
+</html>

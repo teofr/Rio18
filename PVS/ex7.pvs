@@ -1,0 +1,61 @@
+ex7: THEORY
+BEGIN
+
+  IMPORTING ArithExpr, arithexpr_eval
+
+  % Run the following tests using PVSio and decide if the result of the evaluation is
+  % detecting a problem in the definition of the function being tested (eval) or a problem
+  % in the definition of the test. Modify the erroneous definition (eval or test).
+
+  test1: bool =
+    eval(ADD(CONST(1),CONST(2))) = real_val(3)
+
+  test2: bool =
+    eval(EQUALS(ADD(CONST(1),CONST(2)),CONST(3))) = bool_val(TRUE)
+
+  test3: bool =
+    eval(ITE(EQUALS(ADD(CONST(1),CONST(2)),CONST(3)),CONST(20),CONST(30))) = real_val(20)
+
+  test4: bool =
+    eval(ITE(EQUALS(ADD(CONST(1),CONST(2)),CONST(4)),CONST(20),CONST(30))) = real_val(30)
+
+  % Tests mios
+
+  test5: bool =
+    eval(NOPE(EQUALS(CONST(3), ADD(CONST(1), CONST(2))))) = bool_val(FALSE)
+
+  test6: bool =
+    eval(NOPE(EQUALS(CONST(4), MUL(CONST(2), CONST(3))))) = bool_val(TRUE)
+
+  test7: bool =
+    eval(MUL(CONST(3), CONST(5))) = real_val(15)
+
+  test8: bool =
+    eval(MUL(CONST(3), ITE(EQUALS(CONST(3), CONST(3)), CONST(0), CONST(2)))) = real_val(0)
+
+  test9: bool =
+    eval(SUB(CONST(18), CONST(3))) = real_val(15)
+
+  test10: bool =
+    eval(SUB(CONST(3), CONST(18))) = real_val(-15)
+  
+
+  % 1) Modify ArithExpr and eval in order to support subtraction, multiplication and negation.
+  % Remember to check, and prove, the TCCs (M-x tccs).
+  % HINT: if there is some hard-to-prove TCC, look for an already proved and similar TCC,
+  % and type
+  %  a) M-x show-proof, or
+  %  b) M-x x-step-proof
+  % to see how that TCC was proved.
+
+  % 2) Write at least 2 tests for each new supported operation.
+
+  % Once finished, send
+  % - ex7.pvs,
+  % - ex7.prf,
+  % - ArithExpr.pvs,
+  % - arithexpr_eval.pvs,
+  % - arithexpr_eval.prf
+  % to mariano.moscato@nianet.org
+
+END ex7

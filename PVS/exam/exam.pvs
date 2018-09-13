@@ -1,0 +1,110 @@
+exam: THEORY
+BEGIN
+
+  % Sabiendo que list es un tipo de datos que denota listas de elementos, y
+  % está definido de la siguiente manera:
+  %
+  % list [T: TYPE]: DATATYPE BEGIN
+  %   null: null?
+  %   cons (car: T, cdr:list):cons?
+  % END list
+  %
+  % Demostrar los lemas que se enuncian a continuación respetando las siguientes
+  % reglas:
+  % 1) No se pueden usar lemas ni definiciones del preludio (en general, consultar
+  %    por casos particulares)
+  % 2) Sólo se puede usar induct-and-simplify en a lo sumo la mitad de los
+  %    ejercicios *resueltos*.
+  % 3) Se puede utilizar todo el material visto en clase (diapositivas, ejercicios)
+  %    e información disponible en línea.
+  %
+  % Criterio de aprobación de este examen:
+  % * Entregando hoy:
+  %   - para estudiantes de grado: al menos 4 (cuatro) lemas demostrados
+  %   - para estudiantes de posgrado: al menos 6 (seis) lemas demostrados
+  % * Entregando hasta el 10/Marzo a las 23:59 (hora de Argentina):
+  %   - al menos 8 (ocho) lemas demostrados
+  %
+  % Las funciones que aparecen más abajo están definidas de la siguiente manera:
+  % 
+  % reverse(l): RECURSIVE list[T] =
+  %   CASES l OF
+  %     null: l,
+  %     cons(x, y): append(reverse(y), cons(x, null))
+  %   ENDCASES
+  % MEASURE l BY <<
+  %
+  % length(l): RECURSIVE nat =
+  %   CASES l OF
+  %     null: 0,
+  %     cons(x, y): length(y) + 1
+  %   ENDCASES
+  % MEASURE l BY <<
+  % 
+  % append(l1, l2): RECURSIVE list[T] =
+  %   CASES l1 OF
+  %     null: l2,
+  %     cons(x, y): cons(x, append(y, l2))
+  %   ENDCASES
+  % MEASURE l1 BY <<
+  %
+  
+  T: TYPE
+
+  duplicate_elements(l: list[T]): RECURSIVE list[T] =
+    CASES l OF
+      null: null,
+      cons(x,xs): cons(x, cons(x, duplicate_elements(xs)))
+    ENDCASES
+  MEASURE l BY <<
+
+  x: VAR T
+  l, l1, l2, l3: VAR list[T]
+
+  % HINT: no toda propiedad sobre listas se demuestra usando inducción
+  % Okk
+  cons_append: LEMMA
+    cons(x,l) = append(cons(x,null),l)
+
+  % HINT: pero la mayoría sí
+  % Okk
+  length_duplicate: LEMMA
+    length(duplicate_elements(l)) = 2 * length(l)
+
+  % Okk 
+  null_reverse: LEMMA
+    null?(reverse(l)) IFF null?(l)
+
+  % Okk
+  null_append: LEMMA
+    null?(append(l1, l2)) IFF null?(l1) AND null?(l2)
+
+  % Okk 
+  length_append: LEMMA
+    length(append(l1,l2)) = length(l1) + length(l2)
+
+  % HINT: length_append podría ser de utilidad... recuerde los comandos (lemma ...) e (inst?)
+  %       o (use ...).
+  % Okk
+  length_reverse: LEMMA
+    length(reverse(l)) = length(l)
+
+  % Okk induct and simpl
+  append_assoc: LEMMA
+    append(l1, append(l2, l3)) = append(append(l1, l2), l3)
+
+  % Okk
+  append_null: LEMMA
+    append(l, null) = l
+
+  % HINT: append_assoc y append_null podrían ser de utilidad
+  % okk induct-and simpl
+  reverse_append: LEMMA
+    reverse(append(l1,l2)) = append(reverse(l2),reverse(l1))
+
+  % HINT: reverse_append puede ser de utilidad en esta demostración
+  % Okk induct and simpl
+  reverse_reverse: LEMMA
+    reverse(reverse(l)) = l
+    
+END exam

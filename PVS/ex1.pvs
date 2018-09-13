@@ -1,0 +1,42 @@
+ex1: THEORY
+BEGIN
+
+  % For each declaration, add a comment explaining why it does not type check and correct it.
+  % Typecheck: M-x tc
+
+% Falta el tipo de x y de la expresion
+  p(x:bool) :bool = TRUE
+
+  % Idem arriba
+  p(x:int ) :bool = x > 0
+
+  % faltan los tipos
+  f(x:int) :int= x + 1
+
+  %faltan los tipos
+  g(x:bool,p:[bool -> bool]):bool = p(x) OR p(p(x))
+
+  % faltan los tipos (incluyendo el RECURSIVE) y la MEASURE
+  % tampoco tiene caso base
+  h(x:int): RECURSIVE int = IF x <= 0 THEN 0 ELSE  x + h(x-1) ENDIF
+  MEASURE (LAMBDA (x:int) : abs(x))
+
+  % Try to imagine which TCCs (if any) would be generated when typechecking the following declarations
+
+  % before typechecking
+  % f: pide que y /= 0
+  % f2: -
+  % f3: pide demosrtar que TRUE:nat
+  % Despues de chequear f3 no pide ninugn tcc, pero aparece que hay 1 conversion (cuando tenga mejor internet averiguo)
+
+  f(x,y: real): real = x / y
+
+  f2(x,y: real): real = IF y /= 0 THEN x / y ELSE 0 ENDIF
+
+  f3: nat = TRUE
+  
+
+  % after typechecking (indicate why the result of the typechecking is different from what you expected)
+  % M-x show-tccs
+
+END ex1

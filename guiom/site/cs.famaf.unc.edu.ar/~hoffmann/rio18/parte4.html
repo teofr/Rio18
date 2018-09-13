@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Guillaume Hoffmann" />
+  <title>El sistema de tipos de Haskell | 4/5</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link href="data:text/css;charset=utf-8,body%20%7B%0Amax%2Dwidth%3A%2040em%3B%0Amargin%3A%20auto%3B%0Atext%2Dalign%3A%20justify%3B%0A%7D%0Atable%20%7B%0Aborder%3A%201px%20solid%3B%0Aborder%2Dspacing%3A%205px%200%3B%0A%7D%0A" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="header">
+<h1 class="title">El sistema de tipos de Haskell | 4/5</h1>
+<h2 class="author">Guillaume Hoffmann</h2>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="parte4.html#día-4">Día 4</a><ul>
+<li><a href="parte4.html#plan">Plan</a></li>
+<li><a href="parte4.html#type-families">Type Families</a></li>
+<li><a href="parte4.html#synonym-families">Synonym families</a></li>
+<li><a href="parte4.html#open-type-families">Open type families</a></li>
+<li><a href="parte4.html#closed-type-families">Closed type families</a></li>
+<li><a href="parte4.html#ejemplos-de-type-families">Ejemplos de type families</a></li>
+<li><a href="parte4.html#restricciones">Restricciones</a></li>
+<li><a href="parte4.html#section"></a></li>
+<li><a href="parte4.html#aplicación-sobre-tipos-polimórficos">Aplicación sobre tipos polimórficos</a></li>
+<li><a href="parte4.html#type-families-declaradas-dentro-de-clases">Type families declaradas dentro de clases</a></li>
+<li><a href="parte4.html#instancias-asociadas">Instancias asociadas</a></li>
+<li><a href="parte4.html#injective-type-families">Injective Type Families</a></li>
+<li><a href="parte4.html#type-families-para-reemplazar-functional-dependencies">Type families para reemplazar Functional Dependencies</a></li>
+<li><a href="parte4.html#clases-con-tf-e-instancias">Clases con TF e instancias</a></li>
+<li><a href="parte4.html#section-1"></a></li>
+<li><a href="parte4.html#anotaciones-de-igualdad-de-tipos-en-constraints">Anotaciones de igualdad de tipos en constraints:</a></li>
+<li><a href="parte4.html#type-families-vs-functional-dependencies">Type families vs Functional Dependencies</a></li>
+<li><a href="parte4.html#sintaxis-gadtsyntax">Sintaxis <code>GADTSyntax</code></a></li>
+<li><a href="parte4.html#tipos-existenciales">Tipos existenciales</a></li>
+<li><a href="parte4.html#tipos-existenciales-1">Tipos existenciales</a></li>
+<li><a href="parte4.html#rankntypes">RankNTypes</a></li>
+<li><a href="parte4.html#tipos-fantasmas">Tipos fantasmas</a></li>
+<li><a href="parte4.html#más-control-gadts">Más control: <code>GADTs</code></a></li>
+<li><a href="parte4.html#aplicación-de-los-gadts">Aplicación de los GADTs</a></li>
+<li><a href="parte4.html#aplicación-de-phantom-types-existential-types-y-gadtsyntax-a-darcs">Aplicación de Phantom Types, Existential Types y GADTSyntax a Darcs</a></li>
+<li><a href="parte4.html#más-lectura-sobre-type-families-vs.-functional-dependencies">Más lectura sobre type families vs. functional dependencies</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="día-4">Día 4</h1>
+<h2 id="plan">Plan</h2>
+<ul>
+<li>Tipos existenciales y tipos fantasmas</li>
+<li>GADTs</li>
+<li>type families</li>
+</ul>
+<h2 id="type-families">Type Families</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE TypeFamilies #-}</span></code></pre></div>
+<p>Una extensión que permite definir <em>funciones sobre tipos</em>.</p>
+<p>Activa varias formas de definir estas:</p>
+<ul>
+<li>data families (que no vamos a ver)</li>
+<li>type synonym families</li>
+</ul>
+<h2 id="synonym-families">Synonym families</h2>
+<p>3 posibilidades</p>
+<ul>
+<li>definidas al toplevel como familia abierta</li>
+<li>definidas al toplevel como familia cerrada</li>
+<li>apareciendo dentro de una clase de tipos</li>
+</ul>
+<h2 id="open-type-families">Open type families</h2>
+<p>La anotación de kind es opcional y por defecto es <code>*</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">Elem</span><span class="ot"> c ::</span> <span class="fu">*</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Elem</span> [e] <span class="fu">=</span> e</code></pre></div>
+<h2 id="closed-type-families">Closed type families</h2>
+<p>Definiendo el conjunto completo de equaciones de la familia</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">F</span> a <span class="kw">where</span>
+  <span class="dt">F</span> <span class="dt">Int</span>  <span class="fu">=</span> <span class="dt">Double</span>
+  <span class="dt">F</span> <span class="dt">Bool</span> <span class="fu">=</span> <span class="dt">Char</span>
+  <span class="dt">F</span> a    <span class="fu">=</span> <span class="dt">String</span></code></pre></div>
+<p>En GHCi:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">*</span><span class="dt">Main</span><span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">F</span> <span class="dt">Int</span>)
+(undefined<span class="ot"> ::</span> <span class="dt">F</span> <span class="dt">Int</span>)<span class="ot"> ::</span> <span class="dt">Double</span>
+<span class="fu">*</span><span class="dt">Main</span><span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">F</span> [a])
+(undefined<span class="ot"> ::</span> <span class="dt">F</span> [a])<span class="ot"> ::</span> <span class="dt">String</span></code></pre></div>
+<h2 id="ejemplos-de-type-families">Ejemplos de type families</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">F</span><span class="ot"> a ::</span> <span class="fu">*</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> [<span class="dt">Int</span>]   <span class="fu">=</span> <span class="dt">Int</span>   <span class="co">-- OK!</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> <span class="dt">String</span>  <span class="fu">=</span> <span class="dt">Char</span>  <span class="co">-- OK!</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> (<span class="dt">F</span> a)   <span class="fu">=</span> a     <span class="co">-- WRONG: type parameter mentions a type family</span>
+<span class="kw">type</span> <span class="kw">instance</span>
+  <span class="dt">F</span> (forall a<span class="fu">.</span> (a, b))  <span class="fu">=</span> b     <span class="co">-- WRONG: a forall type appears in a type parameter</span>
+<span class="kw">type</span> <span class="kw">instance</span>
+  <span class="dt">F</span> <span class="dt">Float</span> <span class="fu">=</span> forall a<span class="fu">.</span>a          <span class="co">-- WRONG: right-hand side may not be a forall type</span>
+<span class="kw">type</span> family <span class="dt">H</span> a <span class="kw">where</span>          <span class="co">-- OK!</span>
+  <span class="dt">H</span> <span class="dt">Int</span>  <span class="fu">=</span> <span class="dt">Int</span>
+  <span class="dt">H</span> <span class="dt">Bool</span> <span class="fu">=</span> <span class="dt">Bool</span>
+  <span class="dt">H</span> a    <span class="fu">=</span> <span class="dt">String</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">H</span> <span class="dt">Char</span> <span class="fu">=</span> <span class="dt">Char</span>    <span class="co">-- WRONG: cannot have instances of closed family</span>
+<span class="kw">type</span> family <span class="dt">K</span> a <span class="kw">where</span>          <span class="co">-- OK!</span>
+
+<span class="kw">type</span> family <span class="dt">G</span> a<span class="ot"> b ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">G</span> <span class="dt">Int</span>            <span class="fu">=</span> (,)     <span class="co">-- WRONG: must be two type parameters</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">G</span> <span class="dt">Int</span> <span class="dt">Char</span> <span class="dt">Float</span> <span class="fu">=</span> <span class="dt">Double</span>  <span class="co">-- WRONG: must be two type parameters</span></code></pre></div>
+<h2 id="restricciones">Restricciones</h2>
+<p>La reescritura bajo type families tiene reglas estrictas para ser convergente:</p>
+<ol style="list-style-type: decimal">
+<li>Patrones de dos instancias no pueden solaparse:</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> <span class="dt">Int</span> <span class="fu">=</span> <span class="dt">Bool</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> <span class="dt">Int</span> <span class="fu">=</span> <span class="dt">Char</span> <span class="co">-- overlap prohibido</span></code></pre></div>
+<ol start="2" style="list-style-type: decimal">
+<li>Dos instancias solapando de type families son permitidas si los lados derechos coinciden en la región del solapamiento:</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> (a, <span class="dt">Int</span>) <span class="fu">=</span> [a]
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">F</span> (<span class="dt">Int</span>, b) <span class="fu">=</span> [b]   <span class="co">-- overlap permitted</span>
+
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">G</span> (a, <span class="dt">Int</span>)  <span class="fu">=</span> [a]
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">G</span> (<span class="dt">Char</span>, a) <span class="fu">=</span> [a]  <span class="co">-- ILLEGAL overlap, as [Char] /= [Int]</span></code></pre></div>
+<h2 id="section"></h2>
+<ol start="3" style="list-style-type: decimal">
+<li>Los patrones deben ser &quot;separados&quot;, según una noción fuerte de &quot;separados&quot;: dos tipos son considerados como separados si los dos tipos no pueden ser unificados, incluso por un unificador potencialmente infinito. Esto prohibe el siguiente par de instancias</li>
+</ol>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> <span class="kw">instance</span> <span class="dt">H</span> x   x <span class="fu">=</span> <span class="dt">Int</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">H</span> [x] x <span class="fu">=</span> <span class="dt">Bool</span></code></pre></div>
+<h2 id="aplicación-sobre-tipos-polimórficos">Aplicación sobre tipos polimórficos</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">F</span> a <span class="kw">where</span>
+  <span class="dt">F</span> <span class="dt">Int</span> <span class="fu">=</span> <span class="dt">Bool</span>  <span class="co">--</span>
+  <span class="dt">F</span> a   <span class="fu">=</span> <span class="dt">Char</span>  <span class="co">-- dos ecuaciones incompatibles</span>
+
+<span class="kw">type</span> family <span class="dt">G</span> a <span class="kw">where</span> 
+  <span class="dt">G</span> <span class="dt">Int</span> <span class="fu">=</span> <span class="dt">Int</span>   <span class="co">--</span>
+  <span class="dt">G</span> a   <span class="fu">=</span> a     <span class="co">-- dos ecuaciones compatibles</span>
+
+<span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">G</span> a)
+(undefined<span class="ot"> ::</span> <span class="dt">G</span> a)<span class="ot"> ::</span> a
+<span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">F</span> <span class="dt">Int</span>)
+(undefined<span class="ot"> ::</span> <span class="dt">F</span> <span class="dt">Int</span>)<span class="ot"> ::</span> <span class="dt">Bool</span>
+<span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">F</span> [<span class="dt">Int</span>])
+(undefined<span class="ot"> ::</span> <span class="dt">F</span> [<span class="dt">Int</span>])<span class="ot"> ::</span> <span class="dt">Char</span>
+<span class="fu">&gt;</span> <span class="fu">:</span>t (undefined<span class="ot"> ::</span> <span class="dt">F</span> a)
+(undefined<span class="ot"> ::</span> <span class="dt">F</span> a)<span class="ot"> ::</span> a
+
+<span class="fu">&lt;</span>interactive<span class="fu">&gt;</span> error<span class="fu">:</span>
+    • <span class="dt">Couldn't</span> match expected <span class="kw">type</span> ‘<span class="dt">F</span> a’ with actual <span class="kw">type</span> ‘<span class="dt">F</span> a0’
+      <span class="dt">NB</span><span class="fu">:</span> ‘<span class="dt">F</span>’ is a <span class="kw">type</span> function, and may not be injective
+      <span class="dt">The</span> <span class="kw">type</span> variable ‘a0’ is ambiguous
+    • <span class="dt">In</span> the ambiguity check for an expression <span class="kw">type</span> signature
+      <span class="dt">To</span> defer the ambiguity check to use sites, enable <span class="dt">AllowAmbiguousTypes</span>
+      <span class="dt">In</span> an expression <span class="kw">type</span> signature<span class="fu">:</span> <span class="dt">F</span> a
+      <span class="dt">In</span> the expression<span class="fu">:</span> (undefined<span class="ot"> ::</span> <span class="dt">F</span> a)</code></pre></div>
+<h2 id="type-families-declaradas-dentro-de-clases">Type families declaradas dentro de clases</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Collects</span> ce <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Elem</span><span class="ot"> ce ::</span> <span class="fu">*</span>
+  <span class="fu">...</span></code></pre></div>
+<ul>
+<li>se puede omitir la palabra <code>family</code></li>
+<li>los parametros deben ser todas variables</li>
+<li>algunos pueden ser parametros de la clase</li>
+</ul>
+<h2 id="instancias-asociadas">Instancias asociadas</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Eq</span> (<span class="dt">Elem</span> [e]) <span class="ot">=&gt;</span> <span class="dt">Collects</span> [e] <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Elem</span> [e] <span class="fu">=</span> e
+  <span class="fu">...</span></code></pre></div>
+<ul>
+<li>se puede omitir la palabra <code>instance</code></li>
+</ul>
+<p>Las instancias de tipos que se corresponden con los parametros de clases deben tener precisamente el mismo tipo dado en la intancia de la clase:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Collects</span> ce <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">Elem</span><span class="ot"> ce ::</span> <span class="fu">*</span>
+
+<span class="kw">instance</span> <span class="dt">Eq</span> (<span class="dt">Elem</span> [e]) <span class="ot">=&gt;</span> <span class="dt">Collects</span> [e] <span class="kw">where</span>
+  <span class="co">-- Choose one of the following alternatives:</span>
+  <span class="kw">type</span> <span class="dt">Elem</span> [e] <span class="fu">=</span> e       <span class="co">-- OK</span>
+  <span class="kw">type</span> <span class="dt">Elem</span> [x] <span class="fu">=</span> x       <span class="co">-- BAD; '[x]' is different to '[e]' from head</span>
+  <span class="kw">type</span> <span class="dt">Elem</span> x   <span class="fu">=</span> x       <span class="co">-- BAD; 'x' is different to '[e]'</span>
+  <span class="kw">type</span> <span class="dt">Elem</span> [<span class="dt">Maybe</span> x] <span class="fu">=</span> x <span class="co">-- BAD: '[Maybe x]' is different to '[e]'</span></code></pre></div>
+<h2 id="injective-type-families">Injective Type Families</h2>
+<p>Caso donde la inferencia falla en presencia de type families:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">Id</span> a
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Id</span> <span class="dt">Int</span> <span class="fu">=</span> <span class="dt">Int</span>
+<span class="kw">type</span> <span class="kw">instance</span> <span class="dt">Id</span> <span class="dt">Bool</span> <span class="fu">=</span> <span class="dt">Bool</span>
+
+id<span class="ot"> ::</span> <span class="dt">Id</span> t <span class="ot">-&gt;</span> <span class="dt">Id</span> t
+id x <span class="fu">=</span> x</code></pre></div>
+<p>Se rechaza la definición de <code>id</code> por que la variable <code>t</code> aparece <em>solamente</em> bajo aplicaciones de familias de tipos, y es ambigua.</p>
+<p>Con la extensión <code>TypeFamilyDependencies</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">type</span> family <span class="dt">Id</span> a <span class="fu">=</span> r <span class="fu">|</span> r <span class="ot">-&gt;</span> a</code></pre></div>
+<h2 id="type-families-para-reemplazar-functional-dependencies">Type families para reemplazar Functional Dependencies</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">{-# LANGUAGE MultiParamTypeClasses #-}</span>
+<span class="ot">{-# LANGUAGE FunctionalDependencies #-}</span>
+
+<span class="kw">class</span> <span class="dt">Monad</span> m <span class="ot">=&gt;</span> <span class="dt">Store</span> store m <span class="fu">|</span> store <span class="ot">-&gt;</span> m <span class="kw">where</span>
+<span class="ot"> new ::</span> a <span class="ot">-&gt;</span> m (store a)
+<span class="ot"> get ::</span> store a <span class="ot">-&gt;</span> m a
+<span class="ot"> put ::</span> store a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> m ()</code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Store</span> store <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">StoreMonad</span><span class="ot"> store ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span>
+<span class="ot">  new ::</span> a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) (store a)
+<span class="ot">  get ::</span> store a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) a
+<span class="ot">  put ::</span> store a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) ()</code></pre></div>
+</div>
+<h2 id="clases-con-tf-e-instancias">Clases con TF e instancias</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">class</span> <span class="dt">Store</span> store <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">StoreMonad</span><span class="ot"> store ::</span> <span class="fu">*</span> <span class="ot">-&gt;</span> <span class="fu">*</span>
+<span class="ot">  new ::</span> a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) (store a)
+<span class="ot">  get ::</span> store a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) a
+<span class="ot">  put ::</span> store a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) ()</code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">instance</span> <span class="dt">Store</span> <span class="dt">IORef</span> <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">StoreMonad</span> <span class="dt">IORef</span> <span class="fu">=</span> <span class="dt">IO</span>
+  new <span class="fu">=</span> newIORef
+  get <span class="fu">=</span> readIORef
+  put ioref a <span class="fu">=</span> modifyIORef ioref (const a)
+
+<span class="kw">instance</span> <span class="dt">Store</span> <span class="dt">TVar</span> <span class="kw">where</span>
+  <span class="kw">type</span> <span class="dt">StoreMonad</span> <span class="dt">TVar</span> <span class="fu">=</span> <span class="dt">STM</span>
+  new <span class="fu">=</span> newTVar
+  get <span class="fu">=</span> readTVar
+  put ioref a <span class="fu">=</span> modifyTVar ioref (const a)</code></pre></div>
+</div>
+<h2 id="section-1"></h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">storeStrings ::</span> (<span class="dt">Store</span> store, <span class="dt">Monad</span> (<span class="dt">StoreMonad</span> store))
+              <span class="ot">=&gt;</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> (<span class="dt">StoreMonad</span> store) (store [<span class="dt">String</span>])
+storeStrings xs <span class="fu">=</span> <span class="kw">do</span>
+  store <span class="ot">&lt;-</span> new []
+  forM_ xs <span class="fu">$</span> \x <span class="ot">-&gt;</span> <span class="kw">do</span>
+    old <span class="ot">&lt;-</span> get store
+    put store (x <span class="fu">:</span> old)
+  return store</code></pre></div>
+<h2 id="anotaciones-de-igualdad-de-tipos-en-constraints">Anotaciones de igualdad de tipos en constraints:</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">sumCollects ::</span> (<span class="dt">Collects</span> c1, <span class="dt">Collects</span> c2, <span class="dt">Elem</span> c1 <span class="fu">~</span> <span class="dt">Elem</span> c2) <span class="ot">=&gt;</span> c1 <span class="ot">-&gt;</span> c2 <span class="ot">-&gt;</span> c2</code></pre></div>
+<h2 id="type-families-vs-functional-dependencies">Type families vs Functional Dependencies</h2>
+<p>Las type families proveen un estilo de programación sobre tipo más <em>funcional</em> mientras que las dependencias funciones proveen un estilo de programación <em>relacional</em>.</p>
+<p>Además usar type families permite evitar de activar extensiones como:</p>
+<ul>
+<li>MultiParamTypeClasses</li>
+<li>FlexibleInstances</li>
+</ul>
+<p><a href="https://wiki.haskell.org/Functional_dependencies_vs._type_families" class="uri">https://wiki.haskell.org/Functional_dependencies_vs._type_families</a></p>
+<h2 id="sintaxis-gadtsyntax">Sintaxis <code>GADTSyntax</code></h2>
+<p>La extensión <code>GADTSyntax</code> permite definir tipos de datos algebraicos de la forma siguiente:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Dia</span> <span class="kw">where</span>
+    <span class="dt">Lunes</span><span class="ot"> ::</span> <span class="dt">Dia</span>
+    <span class="dt">Martes</span><span class="ot"> ::</span> <span class="dt">Dia</span>
+    <span class="fu">...</span></code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Maybe</span> a <span class="kw">where</span>
+    <span class="dt">Nothing</span><span class="ot"> ::</span> <span class="dt">Maybe</span> a
+    <span class="dt">Just</span><span class="ot">    ::</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a</code></pre></div>
+</div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Lista</span> a <span class="kw">where</span>
+    <span class="dt">Nil</span><span class="ot"> ::</span> <span class="dt">Lista</span> a
+    <span class="dt">Cons</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Lista</span> a <span class="ot">-&gt;</span> <span class="dt">Lista</span> a</code></pre></div>
+</div>
+<h2 id="tipos-existenciales">Tipos existenciales</h2>
+<p>En la definición siguiente, la <code>x</code> es un tipo existencial:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Exists</span> <span class="fu">=</span> forall x<span class="fu">.</span> <span class="dt">Exists</span> x</code></pre></div>
+<p>Usando el constructor <code>Exists</code>, el tipo <code>x</code> es escondido dentro del tipo <code>Exists</code>. Podemos por ejemplo poner distintos tipos en una lista:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">[<span class="dt">Exists</span> <span class="dv">1</span>, <span class="dt">Exists</span> <span class="st">&quot;hello&quot;</span>, <span class="dt">Exists</span> <span class="ch">'a'</span>]</code></pre></div>
+<p>Pero luego se pierden esos tipos, no podemos hacer patten matching. . . .</p>
+<h2 id="tipos-existenciales-1">Tipos existenciales</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Exists</span> <span class="fu">=</span> forall x<span class="fu">.</span> <span class="dt">Exists</span> x</code></pre></div>
+<p>¿Porqué el <code>forall</code>? Tiene sentido si lo vemos con la sintaxis <code>GADTSyntax</code>:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Exists</span> <span class="kw">where</span>
+  <span class="dt">Exists</span><span class="ot"> ::</span> x <span class="ot">-&gt;</span> <span class="dt">Exists</span></code></pre></div>
+<p><code>Exists</code> es una función polimórfica, cualquier funcion polimórfica tiene <code>forall</code> implicitos:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">map<span class="ot"> ::</span> forall a b <span class="fu">.</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [b]</code></pre></div>
+<p>Para poder escribir los <code>forall</code> explicitos activar la extensión <code>ExplicitForAll</code>.</p>
+<h2 id="rankntypes">RankNTypes</h2>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">mapExists ::</span> (forall x<span class="fu">.</span> x <span class="ot">-&gt;</span> x) <span class="ot">-&gt;</span> <span class="dt">Exists</span> <span class="ot">-&gt;</span> <span class="dt">Exists</span>
+mapExists f (<span class="dt">Exists</span> x) <span class="fu">=</span> <span class="dt">Exists</span> (f x)</code></pre></div>
+<p>Esta función tiene polimorfismo de rango 2 (tiene un argumento polimórfico). Requiere la extensión <code>RankNTypes</code> (implica <code>ExplicitForAll</code>).</p>
+<h2 id="tipos-fantasmas">Tipos fantasmas</h2>
+<p>Un tipo fantasma es un tipo que no tiene un valor asociado, como <code>phantom</code> en lo que sigue:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">P</span> phantom <span class="fu">=</span> <span class="dt">P</span> <span class="dt">Int</span></code></pre></div>
+<p>La variable <code>phantom</code> no tiene un valor asociado a ella en la parte a la derecha del símbolo igual. Esto significa que cuando construimos un valor de tipo <code>P</code>, podemos también darle un tipo para <code>phantom</code>. Como <code>phantom</code> no tiene un valor que le corresponde, es libre de unificarse con cualquier cosa en el sistema de tipos.</p>
+<p>Por ejemplo, cada uno de los siguientes casos es válido, incluso dentro de un mismo programa:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="dt">P</span> <span class="dv">5</span><span class="ot"> ::</span> <span class="dt">P</span> <span class="dt">String</span>
+<span class="dt">P</span> <span class="dv">5</span><span class="ot"> ::</span> <span class="dt">P</span> [<span class="dt">Int</span>]
+<span class="dt">P</span> <span class="dv">5</span><span class="ot"> ::</span> <span class="dt">P</span> (<span class="dt">IO</span> ())</code></pre></div>
+<p>Podríamos imaginar estos ejemplos como formas de anotar el valor <code>P 5</code>. En otros términos, una aplicación de los tipos fantasmas, es que nos permiten embedir más información en nuestros tipos. En particular, queremos adjuntar evidencia, o pruevas, a nuestros tipos. Es decir, queremos asociar el tipo fantasma con un tipo testigo.</p>
+<h2 id="más-control-gadts">Más control: <code>GADTs</code></h2>
+<p><em>Generalized</em> Algebraic Data Types:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Blob</span> a <span class="kw">where</span>
+    <span class="dt">Bob</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Blob</span> a
+    <span class="dt">Bib</span><span class="ot"> ::</span> <span class="dt">Blob</span> <span class="dt">Int</span>     <span class="co">-- esto es nuevo!</span></code></pre></div>
+<p>Ejemplo: definir un tipo &quot;expresión&quot; y un evaluador</p>
+<p><a href="https://www.cis.upenn.edu/~sweirich/talks/GADT.pdf" class="uri">https://www.cis.upenn.edu/~sweirich/talks/GADT.pdf</a></p>
+<h2 id="aplicación-de-los-gadts">Aplicación de los GADTs</h2>
+<p>Combinados con tipos fantasmas, se pueden usar para agregar información al nivel de los tipos para garantizar propiedades:</p>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="kw">data</span> <span class="dt">Empty</span>
+<span class="kw">data</span> <span class="dt">NonEmpty</span>
+
+<span class="kw">data</span> <span class="dt">SafeList</span> a b <span class="kw">where</span>
+  <span class="dt">Nil</span><span class="ot">  ::</span> <span class="dt">SafeList</span> a <span class="dt">Empty</span>
+  <span class="dt">Cons</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">SafeList</span> a b <span class="ot">-&gt;</span> <span class="dt">SafeList</span> a <span class="dt">NonEmpty</span></code></pre></div>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">safeHead ::</span> <span class="dt">SafeList</span> a <span class="dt">NonEmpty</span> <span class="ot">-&gt;</span> a</code></pre></div>
+<p>¿Definición?</p>
+</div>
+<h2 id="aplicación-de-phantom-types-existential-types-y-gadtsyntax-a-darcs">Aplicación de Phantom Types, Existential Types y GADTSyntax a Darcs</h2>
+<p>Ver:</p>
+<ul>
+<li>tesis de Jason Dagit sobre garantizar propiedades del código de Darcs <a href="http://darcs.net/Talks/DagitThesis" class="uri">http://darcs.net/Talks/DagitThesis</a></li>
+<li>charla de David Roundy (FOSDEM 2006) <a href="https://www.youtube.com/watch?v=hE88AR_9zIg" class="uri">https://www.youtube.com/watch?v=hE88AR_9zIg</a></li>
+</ul>
+<h2 id="más-lectura-sobre-type-families-vs.-functional-dependencies">Más lectura sobre type families vs. functional dependencies</h2>
+<ul>
+<li><a href="https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#type-families" class="uri">https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#type-families</a></li>
+</ul>
+<p>Comparación type families vs. functional dependencies:</p>
+<ul>
+<li><a href="https://ocharles.org.uk/blog/posts/2014-12-12-type-families.html" class="uri">https://ocharles.org.uk/blog/posts/2014-12-12-type-families.html</a></li>
+<li><a href="https://ocharles.org.uk/blog/posts/2014-12-13-multi-param-type-classes.html" class="uri">https://ocharles.org.uk/blog/posts/2014-12-13-multi-param-type-classes.html</a></li>
+<li><a href="https://ocharles.org.uk/blog/posts/2014-12-14-functional-dependencies.html" class="uri">https://ocharles.org.uk/blog/posts/2014-12-14-functional-dependencies.html</a></li>
+<li><a href="https://dikgwahlapiso.wordpress.com/2015/08/30/moving-from-multiparameter-type-classes-and-functional-dependencies-to-type-families-in-haskell/" class="uri">https://dikgwahlapiso.wordpress.com/2015/08/30/moving-from-multiparameter-type-classes-and-functional-dependencies-to-type-families-in-haskell/</a></li>
+</ul>
+</body>
+</html>

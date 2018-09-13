@@ -1,0 +1,500 @@
+%%% ADT file generated from ArithExpr
+
+ArithExpr_adt: THEORY
+ BEGIN
+
+  ArithExpr: TYPE
+
+  constant?, addition?, substraction?, mult?, equals?, nope?, ite?:
+        [ArithExpr -> boolean]
+
+  NumExpr(x: ArithExpr):  boolean =
+          constant?(x) OR addition?(x) OR substraction?(x) OR mult?(x)
+       OR ite?(x);
+
+  NumExpr: TYPE =
+        {x: ArithExpr |
+                     constant?(x) OR addition?(x) OR substraction?(x)
+                  OR mult?(x) OR ite?(x)}
+
+  BoolExpr(x: ArithExpr):  boolean = equals?(x) OR nope?(x);
+
+  BoolExpr: TYPE = {x: ArithExpr | equals?(x) OR nope?(x)}
+
+  JUDGEMENT (constant?) SUBTYPE_OF NumExpr
+
+  JUDGEMENT (addition?) SUBTYPE_OF NumExpr
+
+  JUDGEMENT (substraction?) SUBTYPE_OF NumExpr
+
+  JUDGEMENT (mult?) SUBTYPE_OF NumExpr
+
+  JUDGEMENT (equals?) SUBTYPE_OF BoolExpr
+
+  JUDGEMENT (nope?) SUBTYPE_OF BoolExpr
+
+  JUDGEMENT (ite?) SUBTYPE_OF NumExpr
+
+  CONST: [real -> (constant?)]
+
+  ADD: [[NumExpr, NumExpr] -> (addition?)]
+
+  SUB: [[NumExpr, NumExpr] -> (substraction?)]
+
+  MUL: [[NumExpr, NumExpr] -> (mult?)]
+
+  EQUALS: [[NumExpr, NumExpr] -> (equals?)]
+
+  NOPE: [BoolExpr -> (nope?)]
+
+  ITE: [[BoolExpr, NumExpr, NumExpr] -> (ite?)]
+
+  x: [(constant?) -> real]
+
+  x1:
+        [{x: ArithExpr |
+                      equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                   OR addition?(x)} ->
+           NumExpr]
+
+  JUDGEMENT (addition?) SUBTYPE_OF
+      {x: ArithExpr |
+                   equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                OR addition?(x)}
+
+  JUDGEMENT (substraction?) SUBTYPE_OF
+      {x: ArithExpr |
+                   equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                OR addition?(x)}
+
+  JUDGEMENT (mult?) SUBTYPE_OF
+      {x: ArithExpr |
+                   equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                OR addition?(x)}
+
+  JUDGEMENT (equals?) SUBTYPE_OF
+      {x: ArithExpr |
+                   equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                OR addition?(x)}
+
+  JUDGEMENT (ite?) SUBTYPE_OF
+      {x: ArithExpr |
+                   equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                OR addition?(x)}
+
+  x2:
+        [{x: ArithExpr |
+                      equals?(x) OR ite?(x) OR mult?(x) OR substraction?(x)
+                   OR addition?(x)} ->
+           NumExpr]
+
+  b: [{x: ArithExpr | ite?(x) OR nope?(x)} -> BoolExpr]
+
+  JUDGEMENT (nope?) SUBTYPE_OF {x: ArithExpr | ite?(x) OR nope?(x)}
+
+  JUDGEMENT (ite?) SUBTYPE_OF {x: ArithExpr | ite?(x) OR nope?(x)}
+
+  ArithExpr_ord: [ArithExpr -> upto(6)]
+
+  ArithExpr_ord_defaxiom: AXIOM
+         FORALL (x: real): ArithExpr_ord(CONST(x)) = 0
+     AND FORALL (x1: NumExpr, x2: NumExpr): ArithExpr_ord(ADD(x1, x2)) = 1
+     AND FORALL (x1: NumExpr, x2: NumExpr): ArithExpr_ord(SUB(x1, x2)) = 2
+     AND FORALL (x1: NumExpr, x2: NumExpr): ArithExpr_ord(MUL(x1, x2)) = 3
+     AND FORALL (x1: NumExpr, x2: NumExpr):
+           ArithExpr_ord(EQUALS(x1, x2)) = 4
+     AND FORALL (b: BoolExpr): ArithExpr_ord(NOPE(b)) = 5
+     AND FORALL (b: BoolExpr, x1: NumExpr, x2: NumExpr):
+           ArithExpr_ord(ITE(b, x1, x2)) = 6;
+
+  ord(x3: ArithExpr): upto(6) =
+      CASES x3
+        OF CONST(CONST1_var): 0,
+           ADD(ADD1_var, ADD2_var): 1,
+           SUB(SUB1_var, SUB2_var): 2,
+           MUL(MUL1_var, MUL2_var): 3,
+           EQUALS(EQUALS1_var, EQUALS2_var): 4,
+           NOPE(NOPE1_var): 5,
+           ITE(ITE1_var, ITE2_var, ITE3_var): 6
+        ENDCASES
+
+  ArithExpr_CONST_extensionality: AXIOM
+    FORALL (constant?_var: (constant?), constant?_var2: (constant?)):
+      x(constant?_var) = x(constant?_var2) IMPLIES
+       constant?_var = constant?_var2;
+
+  ArithExpr_CONST_eta: AXIOM
+    FORALL (constant?_var: (constant?)):
+      CONST(x(constant?_var)) = constant?_var;
+
+  ArithExpr_ADD_extensionality: AXIOM
+    FORALL (addition?_var: (addition?), addition?_var2: (addition?)):
+      x1(addition?_var) = x1(addition?_var2) AND
+       x2(addition?_var) = x2(addition?_var2)
+       IMPLIES addition?_var = addition?_var2;
+
+  ArithExpr_ADD_eta: AXIOM
+    FORALL (addition?_var: (addition?)):
+      ADD(x1(addition?_var), x2(addition?_var)) = addition?_var;
+
+  ArithExpr_SUB_extensionality: AXIOM
+    FORALL (substraction?_var: (substraction?),
+            substraction?_var2: (substraction?)):
+      x1(substraction?_var) = x1(substraction?_var2) AND
+       x2(substraction?_var) = x2(substraction?_var2)
+       IMPLIES substraction?_var = substraction?_var2;
+
+  ArithExpr_SUB_eta: AXIOM
+    FORALL (substraction?_var: (substraction?)):
+      SUB(x1(substraction?_var), x2(substraction?_var)) = substraction?_var;
+
+  ArithExpr_MUL_extensionality: AXIOM
+    FORALL (mult?_var: (mult?), mult?_var2: (mult?)):
+      x1(mult?_var) = x1(mult?_var2) AND x2(mult?_var) = x2(mult?_var2)
+       IMPLIES mult?_var = mult?_var2;
+
+  ArithExpr_MUL_eta: AXIOM
+    FORALL (mult?_var: (mult?)):
+      MUL(x1(mult?_var), x2(mult?_var)) = mult?_var;
+
+  ArithExpr_EQUALS_extensionality: AXIOM
+    FORALL (equals?_var: (equals?), equals?_var2: (equals?)):
+      x1(equals?_var) = x1(equals?_var2) AND
+       x2(equals?_var) = x2(equals?_var2)
+       IMPLIES equals?_var = equals?_var2;
+
+  ArithExpr_EQUALS_eta: AXIOM
+    FORALL (equals?_var: (equals?)):
+      EQUALS(x1(equals?_var), x2(equals?_var)) = equals?_var;
+
+  ArithExpr_NOPE_extensionality: AXIOM
+    FORALL (nope?_var: (nope?), nope?_var2: (nope?)):
+      b(nope?_var) = b(nope?_var2) IMPLIES nope?_var = nope?_var2;
+
+  ArithExpr_NOPE_eta: AXIOM
+    FORALL (nope?_var: (nope?)): NOPE(b(nope?_var)) = nope?_var;
+
+  ArithExpr_ITE_extensionality: AXIOM
+    FORALL (ite?_var: (ite?), ite?_var2: (ite?)):
+      b(ite?_var) = b(ite?_var2) AND
+       x1(ite?_var) = x1(ite?_var2) AND x2(ite?_var) = x2(ite?_var2)
+       IMPLIES ite?_var = ite?_var2;
+
+  ArithExpr_ITE_eta: AXIOM
+    FORALL (ite?_var: (ite?)):
+      ITE(b(ite?_var), x1(ite?_var), x2(ite?_var)) = ite?_var;
+
+  ArithExpr_x_CONST: AXIOM
+    FORALL (CONST1_var: real): x(CONST(CONST1_var)) = CONST1_var;
+
+  ArithExpr_x1_ADD: AXIOM
+    FORALL (ADD1_var: NumExpr, ADD2_var: NumExpr):
+      x1(ADD(ADD1_var, ADD2_var)) = ADD1_var;
+
+  ArithExpr_x2_ADD: AXIOM
+    FORALL (ADD1_var: NumExpr, ADD2_var: NumExpr):
+      x2(ADD(ADD1_var, ADD2_var)) = ADD2_var;
+
+  ArithExpr_x1_SUB: AXIOM
+    FORALL (SUB1_var: NumExpr, SUB2_var: NumExpr):
+      x1(SUB(SUB1_var, SUB2_var)) = SUB1_var;
+
+  ArithExpr_x2_SUB: AXIOM
+    FORALL (SUB1_var: NumExpr, SUB2_var: NumExpr):
+      x2(SUB(SUB1_var, SUB2_var)) = SUB2_var;
+
+  ArithExpr_x1_MUL: AXIOM
+    FORALL (MUL1_var: NumExpr, MUL2_var: NumExpr):
+      x1(MUL(MUL1_var, MUL2_var)) = MUL1_var;
+
+  ArithExpr_x2_MUL: AXIOM
+    FORALL (MUL1_var: NumExpr, MUL2_var: NumExpr):
+      x2(MUL(MUL1_var, MUL2_var)) = MUL2_var;
+
+  ArithExpr_x1_EQUALS: AXIOM
+    FORALL (EQUALS1_var: NumExpr, EQUALS2_var: NumExpr):
+      x1(EQUALS(EQUALS1_var, EQUALS2_var)) = EQUALS1_var;
+
+  ArithExpr_x2_EQUALS: AXIOM
+    FORALL (EQUALS1_var: NumExpr, EQUALS2_var: NumExpr):
+      x2(EQUALS(EQUALS1_var, EQUALS2_var)) = EQUALS2_var;
+
+  ArithExpr_b_NOPE: AXIOM
+    FORALL (NOPE1_var: BoolExpr): b(NOPE(NOPE1_var)) = NOPE1_var;
+
+  ArithExpr_b_ITE: AXIOM
+    FORALL (ITE1_var: BoolExpr, ITE2_var: NumExpr, ITE3_var: NumExpr):
+      b(ITE(ITE1_var, ITE2_var, ITE3_var)) = ITE1_var;
+
+  ArithExpr_x1_ITE: AXIOM
+    FORALL (ITE1_var: BoolExpr, ITE2_var: NumExpr, ITE3_var: NumExpr):
+      x1(ITE(ITE1_var, ITE2_var, ITE3_var)) = ITE2_var;
+
+  ArithExpr_x2_ITE: AXIOM
+    FORALL (ITE1_var: BoolExpr, ITE2_var: NumExpr, ITE3_var: NumExpr):
+      x2(ITE(ITE1_var, ITE2_var, ITE3_var)) = ITE3_var;
+
+  ArithExpr_inclusive: AXIOM
+    FORALL (ArithExpr_var: ArithExpr):
+          constant?(ArithExpr_var) OR addition?(ArithExpr_var)
+       OR substraction?(ArithExpr_var) OR mult?(ArithExpr_var)
+       OR equals?(ArithExpr_var) OR nope?(ArithExpr_var)
+       OR ite?(ArithExpr_var);
+
+  ArithExpr_induction: AXIOM
+    FORALL (p: [ArithExpr -> boolean]):
+      (     FORALL (CONST1_var: real): p(CONST(CONST1_var))
+        AND FORALL (ADD1_var: NumExpr, ADD2_var: NumExpr):
+              p(ADD1_var) AND p(ADD2_var) IMPLIES p(ADD(ADD1_var, ADD2_var))
+        AND FORALL (SUB1_var: NumExpr, SUB2_var: NumExpr):
+              p(SUB1_var) AND p(SUB2_var) IMPLIES p(SUB(SUB1_var, SUB2_var))
+        AND FORALL (MUL1_var: NumExpr, MUL2_var: NumExpr):
+              p(MUL1_var) AND p(MUL2_var) IMPLIES p(MUL(MUL1_var, MUL2_var))
+        AND FORALL (EQUALS1_var: NumExpr, EQUALS2_var: NumExpr):
+              p(EQUALS1_var) AND p(EQUALS2_var) IMPLIES
+               p(EQUALS(EQUALS1_var, EQUALS2_var))
+        AND FORALL (NOPE1_var: BoolExpr):
+              p(NOPE1_var) IMPLIES p(NOPE(NOPE1_var))
+        AND FORALL (ITE1_var: BoolExpr, ITE2_var: NumExpr,
+                    ITE3_var: NumExpr):
+              p(ITE1_var) AND p(ITE2_var) AND p(ITE3_var) IMPLIES
+               p(ITE(ITE1_var, ITE2_var, ITE3_var)))
+       IMPLIES (FORALL (ArithExpr_var: ArithExpr): p(ArithExpr_var));
+
+  subterm(x3: ArithExpr, y: ArithExpr):  boolean =
+      x3 = y OR
+       CASES y
+         OF CONST(CONST1_var): FALSE,
+            ADD(ADD1_var, ADD2_var):
+              subterm(x3, ADD1_var) OR subterm(x3, ADD2_var),
+            SUB(SUB1_var, SUB2_var):
+              subterm(x3, SUB1_var) OR subterm(x3, SUB2_var),
+            MUL(MUL1_var, MUL2_var):
+              subterm(x3, MUL1_var) OR subterm(x3, MUL2_var),
+            EQUALS(EQUALS1_var, EQUALS2_var):
+              subterm(x3, EQUALS1_var) OR subterm(x3, EQUALS2_var),
+            NOPE(NOPE1_var): subterm(x3, NOPE1_var),
+            ITE(ITE1_var, ITE2_var, ITE3_var):
+              subterm(x3, ITE1_var) OR
+               subterm(x3, ITE2_var) OR subterm(x3, ITE3_var)
+         ENDCASES;
+
+  <<:  (well_founded?[ArithExpr]) =
+      LAMBDA (x3, y: ArithExpr):
+        CASES y
+          OF CONST(CONST1_var): FALSE,
+             ADD(ADD1_var, ADD2_var):
+               (x3 = ADD1_var OR x3 << ADD1_var) OR
+                x3 = ADD2_var OR x3 << ADD2_var,
+             SUB(SUB1_var, SUB2_var):
+               (x3 = SUB1_var OR x3 << SUB1_var) OR
+                x3 = SUB2_var OR x3 << SUB2_var,
+             MUL(MUL1_var, MUL2_var):
+               (x3 = MUL1_var OR x3 << MUL1_var) OR
+                x3 = MUL2_var OR x3 << MUL2_var,
+             EQUALS(EQUALS1_var, EQUALS2_var):
+               (x3 = EQUALS1_var OR x3 << EQUALS1_var) OR
+                x3 = EQUALS2_var OR x3 << EQUALS2_var,
+             NOPE(NOPE1_var): x3 = NOPE1_var OR x3 << NOPE1_var,
+             ITE(ITE1_var, ITE2_var, ITE3_var):
+                   x3 = ITE1_var OR x3 << ITE1_var OR x3 = ITE2_var
+                OR x3 << ITE2_var OR x3 = ITE3_var OR x3 << ITE3_var
+          ENDCASES;
+
+  ArithExpr_well_founded: AXIOM well_founded?[ArithExpr](<<);
+
+  reduce_nat(constant?_fun: [real -> nat],
+             addition?_fun: [[nat, nat] -> nat],
+             substraction?_fun: [[nat, nat] -> nat],
+             mult?_fun: [[nat, nat] -> nat],
+             equals?_fun: [[nat, nat] -> nat], nope?_fun: [nat -> nat],
+             ite?_fun: [[nat, nat, nat] -> nat]):
+        [ArithExpr -> nat] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> nat] =
+              reduce_nat(constant?_fun, addition?_fun, substraction?_fun,
+                         mult?_fun, equals?_fun, nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var): constant?_fun(CONST1_var),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var)),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var)),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var)),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var)),
+               NOPE(NOPE1_var): nope?_fun(red(NOPE1_var)),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var))
+            ENDCASES;
+
+  REDUCE_nat(constant?_fun: [[real, ArithExpr] -> nat],
+             addition?_fun: [[nat, nat, ArithExpr] -> nat],
+             substraction?_fun: [[nat, nat, ArithExpr] -> nat],
+             mult?_fun: [[nat, nat, ArithExpr] -> nat],
+             equals?_fun: [[nat, nat, ArithExpr] -> nat],
+             nope?_fun: [[nat, ArithExpr] -> nat],
+             ite?_fun: [[nat, nat, nat, ArithExpr] -> nat]):
+        [ArithExpr -> nat] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> nat] =
+              REDUCE_nat(constant?_fun, addition?_fun, substraction?_fun,
+                         mult?_fun, equals?_fun, nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var):
+                 constant?_fun(CONST1_var, ArithExpr_adtvar),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var),
+                               ArithExpr_adtvar),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var),
+                                   ArithExpr_adtvar),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var), ArithExpr_adtvar),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var),
+                             ArithExpr_adtvar),
+               NOPE(NOPE1_var):
+                 nope?_fun(red(NOPE1_var), ArithExpr_adtvar),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var),
+                          ArithExpr_adtvar)
+            ENDCASES;
+
+  reduce_ordinal(constant?_fun: [real -> ordinal],
+                 addition?_fun: [[ordinal, ordinal] -> ordinal],
+                 substraction?_fun: [[ordinal, ordinal] -> ordinal],
+                 mult?_fun: [[ordinal, ordinal] -> ordinal],
+                 equals?_fun: [[ordinal, ordinal] -> ordinal],
+                 nope?_fun: [ordinal -> ordinal],
+                 ite?_fun: [[ordinal, ordinal, ordinal] -> ordinal]):
+        [ArithExpr -> ordinal] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> ordinal] =
+              reduce_ordinal(constant?_fun, addition?_fun,
+                             substraction?_fun, mult?_fun, equals?_fun,
+                             nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var): constant?_fun(CONST1_var),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var)),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var)),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var)),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var)),
+               NOPE(NOPE1_var): nope?_fun(red(NOPE1_var)),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var))
+            ENDCASES;
+
+  REDUCE_ordinal(constant?_fun: [[real, ArithExpr] -> ordinal],
+                 addition?_fun: [[ordinal, ordinal, ArithExpr] -> ordinal],
+                 substraction?_fun:
+                   [[ordinal, ordinal, ArithExpr] -> ordinal],
+                 mult?_fun: [[ordinal, ordinal, ArithExpr] -> ordinal],
+                 equals?_fun: [[ordinal, ordinal, ArithExpr] -> ordinal],
+                 nope?_fun: [[ordinal, ArithExpr] -> ordinal],
+                 ite?_fun:
+                   [[ordinal, ordinal, ordinal, ArithExpr] -> ordinal]):
+        [ArithExpr -> ordinal] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> ordinal] =
+              REDUCE_ordinal(constant?_fun, addition?_fun,
+                             substraction?_fun, mult?_fun, equals?_fun,
+                             nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var):
+                 constant?_fun(CONST1_var, ArithExpr_adtvar),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var),
+                               ArithExpr_adtvar),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var),
+                                   ArithExpr_adtvar),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var), ArithExpr_adtvar),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var),
+                             ArithExpr_adtvar),
+               NOPE(NOPE1_var):
+                 nope?_fun(red(NOPE1_var), ArithExpr_adtvar),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var),
+                          ArithExpr_adtvar)
+            ENDCASES;
+ END ArithExpr_adt
+
+ArithExpr_adt_reduce[range: TYPE]: THEORY
+ BEGIN
+
+  IMPORTING ArithExpr_adt
+
+  reduce(constant?_fun: [real -> range],
+         addition?_fun: [[range, range] -> range],
+         substraction?_fun: [[range, range] -> range],
+         mult?_fun: [[range, range] -> range],
+         equals?_fun: [[range, range] -> range],
+         nope?_fun: [range -> range],
+         ite?_fun: [[range, range, range] -> range]):
+        [ArithExpr -> range] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> range] =
+              reduce(constant?_fun, addition?_fun, substraction?_fun,
+                     mult?_fun, equals?_fun, nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var): constant?_fun(CONST1_var),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var)),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var)),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var)),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var)),
+               NOPE(NOPE1_var): nope?_fun(red(NOPE1_var)),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var))
+            ENDCASES;
+
+  REDUCE(constant?_fun: [[real, ArithExpr] -> range],
+         addition?_fun: [[range, range, ArithExpr] -> range],
+         substraction?_fun: [[range, range, ArithExpr] -> range],
+         mult?_fun: [[range, range, ArithExpr] -> range],
+         equals?_fun: [[range, range, ArithExpr] -> range],
+         nope?_fun: [[range, ArithExpr] -> range],
+         ite?_fun: [[range, range, range, ArithExpr] -> range]):
+        [ArithExpr -> range] =
+      LAMBDA (ArithExpr_adtvar: ArithExpr):
+        LET red: [ArithExpr -> range] =
+              REDUCE(constant?_fun, addition?_fun, substraction?_fun,
+                     mult?_fun, equals?_fun, nope?_fun, ite?_fun)
+          IN
+          CASES ArithExpr_adtvar
+            OF CONST(CONST1_var):
+                 constant?_fun(CONST1_var, ArithExpr_adtvar),
+               ADD(ADD1_var, ADD2_var):
+                 addition?_fun(red(ADD1_var), red(ADD2_var),
+                               ArithExpr_adtvar),
+               SUB(SUB1_var, SUB2_var):
+                 substraction?_fun(red(SUB1_var), red(SUB2_var),
+                                   ArithExpr_adtvar),
+               MUL(MUL1_var, MUL2_var):
+                 mult?_fun(red(MUL1_var), red(MUL2_var), ArithExpr_adtvar),
+               EQUALS(EQUALS1_var, EQUALS2_var):
+                 equals?_fun(red(EQUALS1_var), red(EQUALS2_var),
+                             ArithExpr_adtvar),
+               NOPE(NOPE1_var):
+                 nope?_fun(red(NOPE1_var), ArithExpr_adtvar),
+               ITE(ITE1_var, ITE2_var, ITE3_var):
+                 ite?_fun(red(ITE1_var), red(ITE2_var), red(ITE3_var),
+                          ArithExpr_adtvar)
+            ENDCASES;
+ END ArithExpr_adt_reduce
